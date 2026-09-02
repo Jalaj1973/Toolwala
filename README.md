@@ -41,8 +41,8 @@ Contains strict document size, format, dimension, and submission guidelines for 
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/jalajbalodi/toolwala.git
-   cd toolwala
+   git clone https://github.com/Jalaj1973/Toolwala.git
+   cd Toolwala
    ```
 
 2. **Install dependencies**:
