@@ -26,7 +26,7 @@ export default function FileDropzone({ onFilesSelected, accept, toolId }) {
       image: '/tool/image-convert',
       video: '/tool/video-trim',
       audio: '/tool/audio-convert',
-      document: '/tool/txt-to-pdf',
+      document: '/tool/docx-to-pdf',
       archive: '/tool/extract-zip',
     };
     const route = routeMap[category] || '/tools';
@@ -86,23 +86,41 @@ export default function FileDropzone({ onFilesSelected, accept, toolId }) {
       />
 
       <div className="dropzone__icon">
-        {isDragging ? <IconSparkles size={32} /> : <IconFolder size={32} />}
+        {isDragging ? <IconSparkles size={26} /> : <IconFolder size={26} />}
       </div>
 
       <div className="dropzone__title">
-        {isDragging ? 'Drop files here' : t('dropTitle')}
+        {isDragging ? 'Drop files here to start' : t('dropTitle')}
       </div>
 
       <div className="dropzone__subtitle">
         {accept
-          ? `Accepts: ${accept.join(', ')}`
+          ? `Supported formats: ${accept.join(', ')}`
           : t('dropSubtitle')
         }
       </div>
 
-      <button className="btn btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); handleClick(); }}>
-        {t('browseFiles')}
-      </button>
+      <div style={{ marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <button
+          className="btn btn-primary btn-sm"
+          onClick={(e) => { e.stopPropagation(); handleClick(); }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          <span>{t('browseFiles')}</span>
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <span className="badge badge-outline" style={{ fontSize: '10px' }}>PDF</span>
+        <span className="badge badge-outline" style={{ fontSize: '10px' }}>PNG / JPG</span>
+        <span className="badge badge-outline" style={{ fontSize: '10px' }}>MP4 / MOV</span>
+        <span className="badge badge-outline" style={{ fontSize: '10px' }}>MP3 / WAV</span>
+        <span className="badge badge-outline" style={{ fontSize: '10px' }}>DOCX / ZIP</span>
+      </div>
     </div>
   );
 }

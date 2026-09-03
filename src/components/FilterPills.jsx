@@ -19,7 +19,7 @@ export default function FilterPills({ categories, activeCategory, onSelectCatego
   };
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+    <div className="pills-container">
       {categories.map((cat) => {
         const isActive = activeCategory === cat.id;
         const count = getCategoryCount(cat.id);
@@ -29,12 +29,15 @@ export default function FilterPills({ categories, activeCategory, onSelectCatego
             key={cat.id}
             className={`pill ${isActive ? 'pill--active' : ''}`}
             onClick={() => onSelectCategory(cat.id)}
+            type="button"
           >
             <span style={{ display: 'flex', alignItems: 'center' }}>
-              {getToolSvgIcon(cat.iconKey || 'folder', 16)}
+              {getToolSvgIcon(cat.iconKey || 'folder', 14)}
             </span>
             <span>{getLocalizedCategoryName(cat)}</span>
-            <span style={{ opacity: 0.7, fontSize: '12px' }}>({count})</span>
+            <span style={{ opacity: 0.6, fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+              {count}
+            </span>
           </button>
         );
       })}
