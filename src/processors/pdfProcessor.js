@@ -1,9 +1,10 @@
 import { PDFDocument, degrees, rgb, StandardFonts } from 'pdf-lib';
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { readFileAsArrayBuffer } from '../utils/fileUtils';
 
-// Configure pdfjs worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+// Configure pdfjs worker to local bundled worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 /**
  * Merge multiple PDF files into one
@@ -302,4 +303,106 @@ export async function pdfToImages(file, onProgress) {
 
   if (onProgress) onProgress(100, 'Done!');
   return images;
+}
+
+/**
+ * Extract lightweight thumbnail images for each page of a PDF document
+ */
+export async function renderPdfThumbnails(file, onProgress) {
+  if (onProgress) onProgress(10, 'Loading PDF for preview...');
+  const arrayBuffer = await readFileAsArrayBuffer(file);
+  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+  const pdf = await loadingTask.promise;
+  const numPages = pdf.numPages;
+
+  const pages = [];
+
+  for (let i = 1; i <= numPages; i++) {
+    if (onProgress) {
+      const pct = 10 + Math.round((i / numPages) * 80);
+      onProgress(pct, `Rendering page ${i} of ${numPages}...`);
+    }
+
+    const page = await pdf.getPage(i);
+    const initialViewport = page.getViewport({ scale: 1.0 });
+    // Target ~220px thumbnail width for crisp preview
+    const scale = Math.min(1.0, 220 / initialViewport.width);
+    const viewport = page.getViewport({ scale });
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    pages.push({
+      id: `p-${i}-${Date.now()}`,
+      originalIndex: i - 1, // 0-based index for pdf-lib copyPages
+      pageNumber: i,
+      thumbnail: dataUrl,
+      width: viewport.width,
+      height: viewport.height,
+      rotation: 0, // 0, 90, 180, 270
+      isSelected: true,
+    });
+  }
+
+  if (onProgress) onProgress(100, 'Ready');
+  return pages;
+}
+
+/**
+ * Reorder and rotate PDF pages according to user-organized layout
+ * @param {File} file
+ * @param {Array<{ originalIndex: number, rotation: number }>} pagesConfig
+ */
+export async function reorderAndRotatePDF(file, pagesConfig, onProgress) {
+  if (onProgress) onProgress(15, 'Reading original PDF...');
+  const buffer = await readFileAsArrayBuffer(file);
+  const srcPdf = await PDFDocument.load(buffer);
+  const newPdf = await PDFDocument.create();
+
+  const total = pagesConfig.length;
+  for (let i = 0; i < total; i++) {
+    const { originalIndex, rotation = 0 } = pagesConfig[i];
+    if (onProgress) {
+      const pct = 15 + Math.round((i / total) * 70);
+      onProgress(pct, `Arranging page ${i + 1} of ${total}...`);
+    }
+
+    const [copiedPage] = await newPdf.copyPages(srcPdf, [originalIndex]);
+    if (rotation !== 0) {
+      const currentRot = copiedPage.getRotation().angle;
+      copiedPage.setRotation(degrees((currentRot + rotation) % 360));
+    }
+    newPdf.addPage(copiedPage);
+  }
+
+  if (onProgress) onProgress(90, 'Generating final PDF...');
+  const bytes = await newPdf.save();
+  if (onProgress) onProgress(100, 'Done!');
+  return bytes;
+}
+
+/**
+ * Extract selected pages into a single new PDF document
+ * @param {File} file
+ * @param {Array<number>} selectedOriginalIndices
+ */
+export async function extractPDFPages(file, selectedOriginalIndices, onProgress) {
+  if (onProgress) onProgress(20, 'Loading PDF document...');
+  const buffer = await readFileAsArrayBuffer(file);
+  const srcPdf = await PDFDocument.load(buffer);
+  const newPdf = await PDFDocument.create();
+
+  if (onProgress) onProgress(50, 'Extracting selected pages...');
+  const copiedPages = await newPdf.copyPages(srcPdf, selectedOriginalIndices);
+  copiedPages.forEach((p) => newPdf.addPage(p));
+
+  if (onProgress) onProgress(90, 'Saving extracted PDF...');
+  const bytes = await newPdf.save();
+  if (onProgress) onProgress(100, 'Done!');
+  return bytes;
 }

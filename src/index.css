@@ -1645,3 +1645,71 @@ p, .text-body, .text-caption, .hero-subheading {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ==========================================================================
+   Visual PDF Page Organizer Component
+   ========================================================================== */
+.pdf-page-card {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.15s ease,
+              box-shadow 0.15s ease;
+}
+
+.pdf-page-card:hover {
+  border-color: var(--fg-muted) !important;
+  box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.pdf-page-card:active {
+  cursor: grabbing;
+}
+
+.pdf-page-card--selected {
+  border-color: var(--fg) !important;
+  box-shadow: 0 0 0 1px var(--fg);
+}
+
+.pdf-page-card--deselected {
+  opacity: 0.45;
+  filter: grayscale(0.5);
+}
+
+.pdf-page-btn {
+  transition: all 0.15s ease;
+}
+
+.pdf-page-btn:hover:not(:disabled) {
+  background: var(--border-hover) !important;
+  color: var(--fg) !important;
+  transform: scale(1.08);
+}
+
+.pdf-page-btn--danger:hover:not(:disabled) {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  border-color: #ef4444 !important;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.grid-organizer-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .grid-organizer-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}

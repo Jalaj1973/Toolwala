@@ -8,17 +8,19 @@ import SignatureCanvas from '../components/SignatureCanvas';
 import { getToolById } from '../data/tools';
 import { downloadFile, formatFileSize } from '../utils/fileUtils';
 import { useLanguage } from '../context/LanguageContext';
+import PdfPageOrganizer from '../components/PdfPageOrganizer';
 
 // Processors
 import {
   mergePDFs,
   splitPDF,
   rotatePDF,
+  reorderAndRotatePDF,
+  extractPDFPages,
   addWatermarkToPDF,
   compressPDF,
   addPageNumbersToPDF,
   signPDF,
-  redactPDF,
   pdfToImages,
 } from '../processors/pdfProcessor';
 
@@ -62,14 +64,20 @@ export default function ToolPage() {
   const [rotateAngle, setRotateAngle] = useState(90);
   const [watermarkText, setWatermarkText] = useState('CONFIDENTIAL');
   const [imageFormat, setImageFormat] = useState('image/jpeg');
-  const [quality, setQuality] = useState(0.8);
-  const [targetWidth, setTargetWidth] = useState(800);
-  const [targetHeight, setTargetHeight] = useState(600);
+  const [quality, _setQuality] = useState(0.8);
+  const [targetWidth, _setTargetWidth] = useState(800);
+  const [targetHeight, _setTargetHeight] = useState(600);
   const [signatureDataUrl, setSignatureDataUrl] = useState(null);
   const [audioStart, setAudioStart] = useState(0);
   const [audioEnd, setAudioEnd] = useState(10);
   const [volumeLevel, setVolumeLevel] = useState(1.5);
   const [speedRatio, setSpeedRatio] = useState(1.25);
+
+  // Visual PDF Organizer state
+  const isVisualOrganizerTool = tool && (tool.id === 'pdf-reorder' || tool.id === 'pdf-rotate' || tool.id === 'pdf-extract');
+  const organizerMode = tool ? (tool.id === 'pdf-extract' ? 'extract' : tool.id === 'pdf-rotate' ? 'rotate' : 'reorder') : 'reorder';
+  const [organizerPages, setOrganizerPages] = useState([]);
+  const [hasValidPages, setHasValidPages] = useState(true);
 
   useEffect(() => {
     if (location.state && location.state.files) {
@@ -95,12 +103,16 @@ export default function ToolPage() {
     } else {
       setFiles([newFiles[0]]);
     }
+    setOrganizerPages([]);
+    setHasValidPages(true);
     setResult(null);
     setError(null);
   };
 
   const handleRemoveFile = (index) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
+    setOrganizerPages([]);
+    setHasValidPages(true);
     setResult(null);
   };
 
@@ -139,7 +151,11 @@ export default function ToolPage() {
           break;
 
         case 'pdf-rotate':
-          output = await rotatePDF(files[0], Number(rotateAngle), updateProgress);
+          if (organizerPages.length > 0) {
+            output = await reorderAndRotatePDF(files[0], organizerPages, updateProgress);
+          } else {
+            output = await rotatePDF(files[0], Number(rotateAngle), updateProgress);
+          }
           outputName = `${files[0].name.replace(/\.pdf$/i, '')}_rotated.pdf`;
           break;
 
@@ -176,12 +192,30 @@ export default function ToolPage() {
           break;
 
         case 'pdf-reorder':
+          if (organizerPages.length === 0) {
+            throw new Error('No pages available to reorder');
+          }
+          output = await reorderAndRotatePDF(files[0], organizerPages, updateProgress);
+          outputName = `${files[0].name.replace(/\.pdf$/i, '')}_reordered.pdf`;
+          break;
+
         case 'pdf-extract':
-          output = await splitPDF(files[0], pageRange, updateProgress);
-          if (Array.isArray(output)) {
-            setResult({ isMultiple: true, items: output });
-            setIsProcessing(false);
-            return;
+          if (organizerPages.length > 0) {
+            const selectedIndices = organizerPages
+              .filter((p) => p.isSelected)
+              .map((p) => p.originalIndex);
+            if (selectedIndices.length === 0) {
+              throw new Error('Please select at least one page to extract');
+            }
+            output = await extractPDFPages(files[0], selectedIndices, updateProgress);
+            outputName = `${files[0].name.replace(/\.pdf$/i, '')}_extracted.pdf`;
+          } else {
+            output = await splitPDF(files[0], pageRange, updateProgress);
+            if (Array.isArray(output)) {
+              setResult({ isMultiple: true, items: output });
+              setIsProcessing(false);
+              return;
+            }
           }
           break;
 
@@ -364,24 +398,89 @@ export default function ToolPage() {
         <p className="text-body">{tool.description}</p>
       </div>
 
-      <div className="grid-2col">
+      <div className={isVisualOrganizerTool && files.length > 0 ? 'grid-organizer-layout' : 'grid-2col'}>
         {/* Left Column: Upload & Options */}
         <div>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <FileDropzone onFilesSelected={handleFilesSelected} accept={tool.accepts} />
-          </div>
+          {isVisualOrganizerTool && files.length > 0 ? (
+            <div>
+              {/* File Info Banner */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '1.25rem',
+                  padding: '12px 16px',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-lg)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '8px',
+                      background: 'var(--bg-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      border: '1px solid var(--border)',
+                      fontSize: '18px',
+                    }}
+                  >
+                    📄
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {files[0].name}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--fg-muted)' }}>
+                      {formatFileSize(files[0].size)}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => handleRemoveFile(0)}
+                  style={{ fontSize: '12px', padding: '4px 12px', height: '30px' }}
+                >
+                  Change File
+                </button>
+              </div>
 
-          {files.length > 0 && (
-            <div className="card" style={{ marginBottom: '1.5rem' }}>
-              <div style={{ fontWeight: '500', marginBottom: '12px' }}>
-                {t('uploadedFiles')} ({files.length})
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {files.map((file, idx) => (
-                  <FilePreview key={idx} file={file} index={idx} onRemove={handleRemoveFile} />
-                ))}
-              </div>
+              {/* Interactive Visual PDF Page Organizer */}
+              <PdfPageOrganizer
+                file={files[0]}
+                mode={organizerMode}
+                onPagesChange={(p, isValid) => {
+                  setOrganizerPages(p);
+                  setHasValidPages(isValid);
+                }}
+              />
             </div>
+          ) : (
+            <>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <FileDropzone onFilesSelected={handleFilesSelected} accept={tool.accepts} />
+              </div>
+
+              {files.length > 0 && (
+                <div className="card" style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ fontWeight: '500', marginBottom: '12px' }}>
+                    {t('uploadedFiles')} ({files.length})
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {files.map((file, idx) => (
+                      <FilePreview key={idx} file={file} index={idx} onRemove={handleRemoveFile} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* Interactive Signature Canvas for Sign Tool */}
@@ -392,12 +491,12 @@ export default function ToolPage() {
             </div>
           )}
 
-          {/* Tool Options */}
-          {(files.length > 0 || tool.id === 'pdf-protect') && (
+          {/* Tool Options (only for non-visual tools) */}
+          {(files.length > 0 || tool.id === 'pdf-protect') && !isVisualOrganizerTool && (
             <div className="card" style={{ marginBottom: '1.5rem' }}>
               <div style={{ fontWeight: '500', marginBottom: '1rem' }}>{t('toolOptions')}</div>
 
-              {(tool.id === 'pdf-split' || tool.id === 'pdf-reorder' || tool.id === 'pdf-extract') && (
+              {tool.id === 'pdf-split' && (
                 <div className="option-group">
                   <label className="option-label">Page Ranges</label>
                   <input
@@ -443,26 +542,21 @@ export default function ToolPage() {
                     step="0.1"
                     value={volumeLevel}
                     onChange={(e) => setVolumeLevel(Number(e.target.value))}
-                    style={{ width: '100%' }}
                   />
                 </div>
               )}
 
-              {(tool.id === 'audio-speed' || tool.id === 'video-speed') && (
+              {tool.id === 'audio-speed' && (
                 <div className="option-group">
                   <label className="option-label">Playback Speed ({speedRatio}x)</label>
-                  <select
-                    className="input"
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="2.0"
+                    step="0.25"
                     value={speedRatio}
                     onChange={(e) => setSpeedRatio(Number(e.target.value))}
-                  >
-                    <option value={0.5}>0.5x Slow Motion</option>
-                    <option value={0.75}>0.75x</option>
-                    <option value={1.0}>1.0x Normal</option>
-                    <option value={1.25}>1.25x Fast</option>
-                    <option value={1.5}>1.5x Fast</option>
-                    <option value={2.0}>2.0x Double Speed</option>
-                  </select>
+                  />
                 </div>
               )}
 
@@ -475,8 +569,8 @@ export default function ToolPage() {
                     onChange={(e) => setRotateAngle(e.target.value)}
                   >
                     <option value={90}>90° Clockwise</option>
-                    <option value={180}>180° Flip</option>
-                    <option value={270}>270° Counter-Clockwise</option>
+                    <option value={180}>180°</option>
+                    <option value={270}>270° (90° Counter-Clockwise)</option>
                   </select>
                 </div>
               )}
@@ -520,8 +614,52 @@ export default function ToolPage() {
           )}
         </div>
 
-        {/* Right Column: Results */}
+        {/* Right Column: Results & Sidebar */}
         <div>
+          {/* Sticky action card for Visual Organizer Tools */}
+          {isVisualOrganizerTool && files.length > 0 && !result && (
+            <div className="card" style={{ position: 'sticky', top: '24px', marginBottom: '1.5rem' }}>
+              <div style={{ fontWeight: 650, fontSize: '16px', marginBottom: '6px' }}>
+                {tool.name}
+              </div>
+              <p style={{ fontSize: '13px', color: 'var(--fg-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
+                {tool.id === 'pdf-reorder'
+                  ? 'Drag cards or click arrows to reorder pages. Then click below to generate your reordered PDF.'
+                  : tool.id === 'pdf-rotate'
+                  ? 'Rotate individual pages or rotate all by 90°, then click below to apply rotations.'
+                  : 'Click pages to select/unselect, then click below to extract them into a new document.'}
+              </p>
+
+              <div
+                style={{
+                  padding: '10px 12px',
+                  background: 'var(--bg-muted)',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border)',
+                  marginBottom: '16px',
+                  fontSize: '12.5px',
+                }}
+              >
+                <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {files[0].name}
+                </div>
+                <div style={{ color: 'var(--fg-muted)', fontSize: '11.5px', marginTop: '3px' }}>
+                  {formatFileSize(files[0].size)}
+                  {organizerPages.length > 0 && ` · ${organizerPages.length} ${organizerPages.length === 1 ? 'page' : 'pages'}`}
+                </div>
+              </div>
+
+              <button
+                className="btn btn-primary btn-lg"
+                style={{ width: '100%' }}
+                onClick={handleProcess}
+                disabled={isProcessing || !hasValidPages}
+              >
+                {isProcessing ? t('processing') : `${t('process')} ${tool.name}`}
+              </button>
+            </div>
+          )}
+
           {isProcessing && (
             <div className="processing-panel">
               <div className="processing-panel__header">
