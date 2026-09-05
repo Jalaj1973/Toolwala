@@ -1,11 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import {
   supabase,
-  isSupabaseConfigured,
-  signInWithEmail as sbSignIn,
-  signUpWithEmail as sbSignUp,
-  signInWithOAuth as sbOAuth,
-  signOut as sbSignOut,
+  isConfigured,
+  signInWithEmail,
+  signUpWithEmail,
+  signInWithOAuth,
+  resetPasswordForEmail,
+  signOut,
+  fetchProfile,
 } from '../lib/supabase';
 
 const AuthContext = createContext();
@@ -13,36 +15,46 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Load user profile from Supabase profiles table
+  const loadProfile = async (userId) => {
+    if (!userId) {
+      setProfile(null);
+      return;
+    }
+    const prof = await fetchProfile(userId);
+    setProfile(prof);
+  };
 
   useEffect(() => {
     let subscription = null;
 
-    if (isSupabaseConfigured && supabase) {
-      // Get initial session
-      supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
+    if (isConfigured) {
+      // 1. Fetch initial session from Supabase
+      supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+        if (initialSession?.user) {
+          loadProfile(initialSession.user.id);
+        }
         setLoading(false);
       });
 
-      // Listen for auth changes
-      const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      // 2. Subscribe to auth changes (sign in, sign out, token refreshed, email confirmed)
+      const { data } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
+        if (newSession?.user) {
+          await loadProfile(newSession.user.id);
+        } else {
+          setProfile(null);
+        }
         setLoading(false);
       });
       subscription = data?.subscription;
     } else {
-      // Check for local demo session if Supabase anon key not yet configured
-      const demoUser = localStorage.getItem('toolwala_demo_user');
-      if (demoUser) {
-        try {
-          setUser(JSON.parse(demoUser));
-        } catch {
-          // ignore error
-        }
-      }
       setLoading(false);
     }
 
@@ -51,61 +63,33 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  const loginWithEmail = async (email, password) => {
-    if (isSupabaseConfigured) {
-      return await sbSignIn(email, password);
+  const login = async (email, password) => {
+    const res = await signInWithEmail(email, password);
+    if (res.data?.user) {
+      setUser(res.data.user);
+      setSession(res.data.session);
+      await loadProfile(res.data.user.id);
     }
-    // Demo fallback login
-    const demo = {
-      id: 'demo-user-123',
-      email,
-      user_metadata: { full_name: email.split('@')[0] },
-      isDemo: true,
-    };
-    localStorage.setItem('toolwala_demo_user', JSON.stringify(demo));
-    setUser(demo);
-    return { data: { user: demo }, error: null };
+    return res;
   };
 
-  const registerWithEmail = async (email, password) => {
-    if (isSupabaseConfigured) {
-      return await sbSignUp(email, password);
-    }
-    // Demo fallback register
-    const demo = {
-      id: 'demo-user-' + Date.now(),
-      email,
-      user_metadata: { full_name: email.split('@')[0] },
-      isDemo: true,
-    };
-    localStorage.setItem('toolwala_demo_user', JSON.stringify(demo));
-    setUser(demo);
-    return { data: { user: demo }, error: null };
+  const register = async (email, password, fullName) => {
+    return await signUpWithEmail(email, password, fullName);
   };
 
-  const loginWithOAuth = async (provider) => {
-    if (isSupabaseConfigured) {
-      return await sbOAuth(provider);
-    }
-    // Demo fallback OAuth
-    const demo = {
-      id: `demo-${provider}-user`,
-      email: `user@${provider}.demo`,
-      user_metadata: { full_name: `${provider.charAt(0).toUpperCase() + provider.slice(1)} User` },
-      isDemo: true,
-    };
-    localStorage.setItem('toolwala_demo_user', JSON.stringify(demo));
-    setUser(demo);
-    return { data: { user: demo }, error: null };
+  const loginOAuth = async (provider) => {
+    return await signInWithOAuth(provider);
+  };
+
+  const sendPasswordReset = async (email) => {
+    return await resetPasswordForEmail(email);
   };
 
   const logout = async () => {
-    if (isSupabaseConfigured) {
-      await sbSignOut();
-    }
-    localStorage.removeItem('toolwala_demo_user');
+    await signOut();
     setUser(null);
     setSession(null);
+    setProfile(null);
   };
 
   return (
@@ -113,12 +97,15 @@ export function AuthProvider({ children }) {
       value={{
         user,
         session,
+        profile,
         loading,
-        isConfigured: isSupabaseConfigured,
-        loginWithEmail,
-        registerWithEmail,
-        loginWithOAuth,
+        isConfigured,
+        login,
+        register,
+        loginOAuth,
+        sendPasswordReset,
         logout,
+        refreshProfile: () => user && loadProfile(user.id),
       }}
     >
       {children}

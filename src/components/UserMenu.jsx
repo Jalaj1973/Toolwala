@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export default function UserMenu({ onOpenAuth }) {
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -45,11 +45,13 @@ export default function UserMenu({ onOpenAuth }) {
   }
 
   const displayName =
+    profile?.full_name ||
     user.user_metadata?.full_name ||
     user.email?.split('@')[0] ||
     'User';
   const initial = displayName.charAt(0).toUpperCase();
-  const avatarUrl = user.user_metadata?.avatar_url;
+  const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url;
+  const tier = profile?.tier || 'Free Tier';
 
   return (
     <div ref={menuRef} style={{ position: 'relative' }}>
@@ -140,15 +142,11 @@ export default function UserMenu({ onOpenAuth }) {
                 color: '#22c55e',
                 fontSize: '10px',
                 fontWeight: '600',
+                textTransform: 'capitalize',
               }}
             >
-              <span>●</span> Free Tier (50k MAU)
+              <span>●</span> {tier}
             </div>
-          </div>
-
-          {/* Project Ref info */}
-          <div style={{ padding: '4px 10px', fontSize: '10px', color: 'var(--fg-muted)' }}>
-            Supabase: <code style={{ fontSize: '10px' }}>qqxydjgyy...</code>
           </div>
 
           <div style={{ height: '1px', backgroundColor: 'var(--border-hairline)', margin: '4px 0' }} />
