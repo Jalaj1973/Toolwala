@@ -11,6 +11,7 @@ import { useLanguage } from '../context/LanguageContext';
 import PdfPageOrganizer from '../components/PdfPageOrganizer';
 import AudioWaveformTrimmer from '../components/AudioWaveformTrimmer';
 import VideoTimelineTrimmer from '../components/VideoTimelineTrimmer';
+import SpeedController from '../components/SpeedController';
 
 // Processors
 import {
@@ -725,18 +726,13 @@ export default function ToolPage() {
                 </div>
               )}
 
-              {tool.id === 'audio-speed' && (
-                <div className="option-group">
-                  <label className="option-label">Playback Speed ({speedRatio}x)</label>
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="2.0"
-                    step="0.25"
-                    value={speedRatio}
-                    onChange={(e) => setSpeedRatio(Number(e.target.value))}
-                  />
-                </div>
+              {(tool.id === 'audio-speed' || tool.id === 'video-speed') && (
+                <SpeedController
+                  file={files[0]}
+                  type={tool.id === 'video-speed' ? 'video' : 'audio'}
+                  speedRatio={speedRatio}
+                  onChange={(newSpeed) => setSpeedRatio(newSpeed)}
+                />
               )}
 
               {(tool.id === 'pdf-rotate' || tool.id === 'image-rotate') && (
@@ -787,7 +783,11 @@ export default function ToolPage() {
                 onClick={handleProcess}
                 disabled={isProcessing}
               >
-                {isProcessing ? t('processing') : `${t('process')} ${tool.name}`}
+                {isProcessing
+                  ? t('processing')
+                  : (tool.id === 'audio-speed' || tool.id === 'video-speed')
+                  ? `${t('process')} ${tool.name} (${speedRatio}x)`
+                  : `${t('process')} ${tool.name}`}
               </button>
             </div>
           )}
