@@ -118,9 +118,50 @@ export default function HomePage() {
 
 
       {/* =========================================================================
-          4. Benefits Section (Rules A2 & A5: Bold benefit first, outcome driven)
+          3. Popular Tools Section (Immediate Tool Access)
           ========================================================================= */}
-      <section className="section container" style={{ paddingTop: '2rem', paddingBottom: '3rem' }}>
+      <section id="popular-tools" className="section container" style={{ paddingTop: '2.5rem', paddingBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <div className="text-eyebrow" style={{ marginBottom: '8px' }}>
+              {t('mostUsed')}
+            </div>
+            <h2 className="text-heading">
+              {t('popularHeading')}
+            </h2>
+            <p className="text-body" style={{ marginTop: '4px', maxWidth: '60ch' }}>
+              {t('popularSub')}
+            </p>
+          </div>
+          <Link to="/tools" className="btn btn-outline btn-sm">
+            <span>View all 42 tools</span>
+            <span>→</span>
+          </Link>
+        </div>
+
+        <div className="grid-tools">
+          {popularTools.map((tool) => (
+            <ToolCard key={tool.id} tool={tool} />
+          ))}
+        </div>
+      </section>
+
+      {/* =========================================================================
+          4. Stats Section (Organic data)
+          ========================================================================= */}
+      <section className="section container" style={{ paddingTop: '1rem', paddingBottom: '2.5rem' }}>
+        <div className="grid-stats">
+          <StatCard iconKey="folder" value={tools.length} label="Tools Available" subtext="PDF, photo, video, audio" />
+          <StatCard iconKey="speed" value="0.8s" label="Execution Time" subtext="Instant browser processing" />
+          <StatCard iconKey="lock" value="100%" label="Client Side Privacy" subtext="Zero cloud transmission" />
+          <StatCard iconKey="sparkles" value="Free" label="No Cost Or Limits" subtext="Zero watermarks or trials" />
+        </div>
+      </section>
+
+      {/* =========================================================================
+          5. Why Toolwala / Feature Cards Section (Moved below tools)
+          ========================================================================= */}
+      <section className="section container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem', maxWidth: '680px', margin: '0 auto 2.5rem' }}>
           <p className="text-eyebrow" style={{ marginBottom: '8px' }}>
             Why Toolwala
@@ -196,48 +237,6 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-
-      {/* =========================================================================
-          6. Popular Tools Section
-          ========================================================================= */}
-      <section id="popular-tools" className="section container" style={{ paddingTop: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <div className="text-eyebrow" style={{ marginBottom: '8px' }}>
-              {t('mostUsed')}
-            </div>
-            <h2 className="text-heading">
-              {t('popularHeading')}
-            </h2>
-            <p className="text-body" style={{ marginTop: '4px', maxWidth: '60ch' }}>
-              {t('popularSub')}
-            </p>
-          </div>
-          <Link to="/tools" className="btn btn-outline btn-sm">
-            <span>View all 42 tools</span>
-            <span>→</span>
-          </Link>
-        </div>
-
-        <div className="grid-tools">
-          {popularTools.map((tool) => (
-            <ToolCard key={tool.id} tool={tool} />
-          ))}
-        </div>
-      </section>
-
-      {/* =========================================================================
-          7. Stats Section (Rule B8: Organic data)
-          ========================================================================= */}
-      <section className="section container" style={{ paddingTop: '1rem' }}>
-        <div className="grid-stats">
-          <StatCard iconKey="folder" value={tools.length} label="Tools Available" subtext="PDF, photo, video, audio" />
-          <StatCard iconKey="speed" value="0.8s" label="Execution Time" subtext="Instant browser processing" />
-          <StatCard iconKey="lock" value="100%" label="Client Side Privacy" subtext="Zero cloud transmission" />
-          <StatCard iconKey="sparkles" value="Free" label="No Cost Or Limits" subtext="Zero watermarks or trials" />
         </div>
       </section>
 
