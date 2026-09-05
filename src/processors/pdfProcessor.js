@@ -154,17 +154,104 @@ export async function addWatermarkToPDF(file, text = 'CONFIDENTIAL', options = {
 }
 
 /**
- * Compress PDF by recreating stream objects
+ * Compress PDF with adjustable compression levels and realistic image downsampling
+ * @param {File} file
+ * @param {object|function} optionsOrProgress - Options { level, quality } or progress callback
+ * @param {function} [onProgress]
  */
-export async function compressPDF(file, onProgress) {
-  if (onProgress) onProgress(30, 'Reading PDF for optimization...');
-  const buffer = await readFileAsArrayBuffer(file);
-  const pdfDoc = await PDFDocument.load(buffer);
+export async function compressPDF(file, optionsOrProgress, onProgress) {
+  let options = { level: 'recommended', quality: 0.7 };
+  let progressFn = onProgress;
 
-  if (onProgress) onProgress(70, 'Optimizing objects...');
-  const bytes = await pdfDoc.save({ useObjectStreams: true });
-  if (onProgress) onProgress(100, 'Done!');
-  return bytes;
+  if (typeof optionsOrProgress === 'function') {
+    progressFn = optionsOrProgress;
+  } else if (typeof optionsOrProgress === 'object' && optionsOrProgress !== null) {
+    options = { ...options, ...optionsOrProgress };
+  }
+
+  const { level = 'recommended', quality = 0.7 } = options;
+
+  if (progressFn) progressFn(15, 'Reading PDF for optimization...');
+  const buffer = await readFileAsArrayBuffer(file);
+
+  // Attempt 1: Standard object stream optimization with pdf-lib
+  const pdfDoc = await PDFDocument.load(buffer, { ignoreEncryption: true });
+  const streamOptimizedBytes = await pdfDoc.save({ useObjectStreams: true });
+
+  // For light compression or if quality >= 0.85, return stream-optimized
+  if (level === 'light' || quality >= 0.85) {
+    if (progressFn) progressFn(100, 'Optimization complete');
+    return streamOptimizedBytes;
+  }
+
+  // Attempt 2: Image and page downsampling for raster/scanned document compression
+  if (progressFn) progressFn(35, 'Analyzing page elements & downsampling...');
+  try {
+    const loadingTask = pdfjsLib.getDocument({ data: buffer });
+    const pdf = await loadingTask.promise;
+    const numPages = pdf.numPages;
+
+    const compressedPdf = await PDFDocument.create();
+
+    // Determine target scale and JPEG quality based on compression level
+    let targetScale = 1.25;
+    let jpegQuality = 0.7;
+
+    if (level === 'extreme' || quality <= 0.5) {
+      targetScale = 1.0;
+      jpegQuality = 0.5;
+    } else if (level === 'light' || quality >= 0.8) {
+      targetScale = 1.5;
+      jpegQuality = 0.85;
+    } else {
+      targetScale = 1.0 + (quality - 0.5) * 1.2;
+      jpegQuality = quality;
+    }
+
+    for (let i = 1; i <= numPages; i++) {
+      if (progressFn) {
+        const pct = 35 + Math.round((i / numPages) * 50);
+        progressFn(pct, `Compressing page ${i} of ${numPages}...`);
+      }
+
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: targetScale });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+      const ctx = canvas.getContext('2d');
+
+      await page.render({ canvasContext: ctx, viewport }).promise;
+
+      const jpegDataUrl = canvas.toDataURL('image/jpeg', jpegQuality);
+      const jpegBytes = await fetch(jpegDataUrl).then((r) => r.arrayBuffer());
+
+      const embeddedImage = await compressedPdf.embedJpg(jpegBytes);
+      const originalViewport = page.getViewport({ scale: 1.0 });
+      const newPage = compressedPdf.addPage([originalViewport.width, originalViewport.height]);
+      newPage.drawImage(embeddedImage, {
+        x: 0,
+        y: 0,
+        width: originalViewport.width,
+        height: originalViewport.height,
+      });
+    }
+
+    if (progressFn) progressFn(90, 'Finalizing compressed document...');
+    const rasterCompressedBytes = await compressedPdf.save({ useObjectStreams: true });
+
+    // Use raster-compressed if smaller, otherwise stream-optimized
+    if (rasterCompressedBytes.length < streamOptimizedBytes.length) {
+      if (progressFn) progressFn(100, 'Done!');
+      return rasterCompressedBytes;
+    }
+  } catch (err) {
+    console.warn('Raster compression fallback:', err);
+  }
+
+  if (progressFn) progressFn(100, 'Done!');
+  return streamOptimizedBytes;
 }
 
 /**

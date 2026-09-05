@@ -211,25 +211,53 @@ export async function rotateImage(file, degrees = 90, onProgress) {
 }
 
 /**
- * Compress Image with quality slider
+ * Compress Image with adjustable quality and optional dimension scaling
+ * @param {File} file
+ * @param {number|object} optionsOrQuality - Quality number (0.1 to 1.0) or options object
+ * @param {function} [onProgress]
  */
-export async function compressImage(file, quality = 0.7, onProgress) {
-  if (onProgress) onProgress(30, 'Analyzing image...');
+export async function compressImage(file, optionsOrQuality = 0.7, onProgress) {
+  let quality = 0.7;
+  let maxWidth = 1920;
+  let maxHeight = 1920;
+  let progressFn = onProgress;
+
+  if (typeof optionsOrQuality === 'number') {
+    quality = optionsOrQuality;
+  } else if (typeof optionsOrQuality === 'object' && optionsOrQuality !== null) {
+    if (optionsOrQuality.quality !== undefined) quality = optionsOrQuality.quality;
+    if (optionsOrQuality.maxWidth !== undefined) maxWidth = optionsOrQuality.maxWidth;
+    if (optionsOrQuality.maxHeight !== undefined) maxHeight = optionsOrQuality.maxHeight;
+  }
+
+  if (progressFn) progressFn(25, 'Analyzing image dimensions and payload...');
   const dataUrl = await readFileAsDataURL(file);
 
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      if (onProgress) onProgress(70, 'Compressing image data...');
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
+      if (progressFn) progressFn(60, 'Optimizing resolution and compression...');
 
+      let { width, height } = img;
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+
+      if (progressFn) progressFn(85, 'Encoding compressed file...');
       canvas.toBlob(
         (blob) => {
-          if (onProgress) onProgress(100, 'Done!');
+          if (progressFn) progressFn(100, 'Done!');
           if (blob) resolve(blob);
           else reject(new Error('Compression failed'));
         },

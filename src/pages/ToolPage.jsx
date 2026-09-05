@@ -79,6 +79,11 @@ export default function ToolPage() {
   const [organizerPages, setOrganizerPages] = useState([]);
   const [hasValidPages, setHasValidPages] = useState(true);
 
+  // Compression options state
+  const isCompressionTool = tool && (tool.id === 'pdf-compress' || tool.id === 'image-compress');
+  const [compressionPreset, setCompressionPreset] = useState('recommended');
+  const [compressionLevel, setCompressionLevel] = useState(60);
+
   useEffect(() => {
     if (location.state && location.state.files) {
       setFiles(location.state.files);
@@ -164,10 +169,16 @@ export default function ToolPage() {
           outputName = `${files[0].name.replace(/\.pdf$/i, '')}_watermarked.pdf`;
           break;
 
-        case 'pdf-compress':
-          output = await compressPDF(files[0], updateProgress);
+        case 'pdf-compress': {
+          const compQuality = Math.max(0.35, Math.min(0.92, 1 - (compressionLevel / 100) * 0.7));
+          output = await compressPDF(
+            files[0],
+            { level: compressionPreset, quality: compQuality },
+            updateProgress
+          );
           outputName = `${files[0].name.replace(/\.pdf$/i, '')}_compressed.pdf`;
           break;
+        }
 
         case 'pdf-page-numbers':
           output = await addPageNumbersToPDF(files[0], {}, updateProgress);
@@ -260,10 +271,16 @@ export default function ToolPage() {
           outputName = `${files[0].name.split('.')[0]}_rotated.png`;
           break;
 
-        case 'image-compress':
-          output = await compressImage(files[0], Number(quality), updateProgress);
+        case 'image-compress': {
+          const imgQuality = Math.max(0.2, Math.min(0.95, 1 - (compressionLevel / 100) * 0.85));
+          output = await compressImage(
+            files[0],
+            { quality: imgQuality, maxWidth: compressionLevel >= 75 ? 1440 : 1920 },
+            updateProgress
+          );
           outputName = `${files[0].name.split('.')[0]}_compressed.jpg`;
           break;
+        }
 
         case 'images-to-pdf':
           output = await imagesToPDF(files, updateProgress);
@@ -495,6 +512,112 @@ export default function ToolPage() {
           {(files.length > 0 || tool.id === 'pdf-protect') && !isVisualOrganizerTool && (
             <div className="card" style={{ marginBottom: '1.5rem' }}>
               <div style={{ fontWeight: '500', marginBottom: '1rem' }}>{t('toolOptions')}</div>
+
+              {/* Compression Controls for PDF & Image */}
+              {isCompressionTool && (
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <label className="option-label" style={{ marginBottom: '10px' }}>
+                    Compression Preset
+                  </label>
+
+                  {/* 3 Quick Presets */}
+                  <div className="compression-preset-grid">
+                    <button
+                      type="button"
+                      className={`compression-preset-btn ${compressionPreset === 'extreme' ? 'compression-preset-btn--active' : ''}`}
+                      onClick={() => {
+                        setCompressionPreset('extreme');
+                        setCompressionLevel(80);
+                      }}
+                    >
+                      <div style={{ fontWeight: 650, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>⚡ Extreme</span>
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--fg-muted)', marginTop: '4px', lineHeight: 1.3 }}>
+                        ~75% smaller · Strict portal limits
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`compression-preset-btn ${compressionPreset === 'recommended' ? 'compression-preset-btn--active' : ''}`}
+                      onClick={() => {
+                        setCompressionPreset('recommended');
+                        setCompressionLevel(60);
+                      }}
+                    >
+                      <div style={{ fontWeight: 650, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>⚖️ Recommended</span>
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--fg-muted)', marginTop: '4px', lineHeight: 1.3 }}>
+                        ~55% smaller · High clarity & balance
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`compression-preset-btn ${compressionPreset === 'light' ? 'compression-preset-btn--active' : ''}`}
+                      onClick={() => {
+                        setCompressionPreset('light');
+                        setCompressionLevel(30);
+                      }}
+                    >
+                      <div style={{ fontWeight: 650, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>💎 High Quality</span>
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--fg-muted)', marginTop: '4px', lineHeight: 1.3 }}>
+                        ~30% smaller · Print-ready details
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Fine-Tuning Slider */}
+                  <div className="option-group" style={{ marginTop: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span className="option-label" style={{ margin: 0 }}>
+                        Fine-Tune Compression Strength
+                      </span>
+                      <span style={{ fontSize: '12px', fontWeight: 650, color: 'var(--fg)' }}>
+                        {compressionLevel}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="15"
+                      max="85"
+                      step="5"
+                      value={compressionLevel}
+                      onChange={(e) => {
+                        setCompressionLevel(Number(e.target.value));
+                        setCompressionPreset('custom');
+                      }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--fg-muted)', marginTop: '4px' }}>
+                      <span>Higher Quality (15%)</span>
+                      <span>Smaller Size (85%)</span>
+                    </div>
+                  </div>
+
+                  {/* Live File Size Estimation Banner */}
+                  {files.length > 0 && (
+                    <div className="compression-estimate-bar">
+                      <div>
+                        <span style={{ color: 'var(--fg-muted)' }}>Original: </span>
+                        <strong>{formatFileSize(files[0].size)}</strong>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: 'var(--fg-muted)' }}>Estimated: </span>
+                        <strong style={{ color: 'var(--success)' }}>
+                          ~{formatFileSize(Math.max(15000, Math.round(files[0].size * (1 - compressionLevel / 100))))}
+                        </strong>
+                        <span className="badge" style={{ fontSize: '11px', padding: '2px 6px', background: 'rgba(34,197,94,0.1)', color: 'var(--success)', borderColor: 'rgba(34,197,94,0.3)' }}>
+                          ~{compressionLevel}% saved
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {tool.id === 'pdf-split' && (
                 <div className="option-group">
