@@ -90,6 +90,16 @@ export default function ToolPage() {
   // Media Trim state (Audio / Video)
   const isMediaTrimTool = tool && (tool.id === 'audio-trim' || tool.id === 'video-trim');
 
+  // Check if tool has customizable options
+  const hasOptions = isCompressionTool ||
+    tool?.id === 'audio-speed' ||
+    tool?.id === 'video-speed' ||
+    tool?.id === 'pdf-split' ||
+    tool?.id === 'audio-volume' ||
+    tool?.id === 'image-rotate' ||
+    tool?.id === 'pdf-watermark' ||
+    tool?.id === 'image-convert';
+
   useEffect(() => {
     if (location.state && location.state.files) {
       setFiles(location.state.files);
@@ -421,154 +431,162 @@ export default function ToolPage() {
         <p className="text-body">{tool.description}</p>
       </div>
 
-      <div className={(isVisualOrganizerTool || isMediaTrimTool) && files.length > 0 ? 'grid-organizer-layout' : 'grid-2col'}>
-        {/* Left Column: Upload & Options */}
-        <div>
-          {isVisualOrganizerTool && files.length > 0 ? (
-            <div>
-              {/* File Info Banner */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '1.25rem',
-                  padding: '12px 16px',
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-lg)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-                  <div
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '8px',
-                      background: 'var(--bg-muted)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      border: '1px solid var(--border)',
-                      fontSize: '18px',
-                    }}
-                  >
-                    📄
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {files[0].name}
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--fg-muted)' }}>
-                      {formatFileSize(files[0].size)}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-outline btn-sm"
-                  onClick={() => handleRemoveFile(0)}
-                  style={{ fontSize: '12px', padding: '4px 12px', height: '30px' }}
+      {files.length === 0 ? (
+        <div style={{ maxWidth: '820px', margin: '0 auto' }}>
+          <FileDropzone onFilesSelected={handleFilesSelected} accept={tool.accepts} />
+        </div>
+      ) : (
+        <div className={(isVisualOrganizerTool || isMediaTrimTool) ? 'grid-organizer-layout' : 'tool-page-grid'}>
+          {/* Left Column: Source / Files Area */}
+          <div>
+            {isVisualOrganizerTool ? (
+              <div>
+                {/* File Info Banner */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '1.25rem',
+                    padding: '12px 16px',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-lg)',
+                  }}
                 >
-                  Change File
-                </button>
-              </div>
-
-              {/* Interactive Visual PDF Page Organizer */}
-              <PdfPageOrganizer
-                file={files[0]}
-                mode={organizerMode}
-                onPagesChange={(p, isValid) => {
-                  setOrganizerPages(p);
-                  setHasValidPages(isValid);
-                }}
-              />
-            </div>
-          ) : isMediaTrimTool && files.length > 0 ? (
-            <div>
-              {/* File Info Banner */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '1.25rem',
-                  padding: '12px 16px',
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-lg)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-                  <div
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '8px',
-                      background: 'var(--bg-muted)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      border: '1px solid var(--border)',
-                      fontSize: '18px',
-                    }}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                    <div
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '8px',
+                        background: 'var(--bg-muted)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        border: '1px solid var(--border)',
+                        fontSize: '18px',
+                      }}
+                    >
+                      📄
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {files[0].name}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--fg-muted)' }}>
+                        {formatFileSize(files[0].size)}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={() => handleRemoveFile(0)}
+                    style={{ fontSize: '12px', padding: '4px 12px', height: '30px' }}
                   >
-                    {tool.id === 'audio-trim' ? '🎵' : '🎬'}
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {files[0].name}
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--fg-muted)' }}>
-                      {formatFileSize(files[0].size)}
-                    </div>
-                  </div>
+                    Change File
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  className="btn btn-outline btn-sm"
-                  onClick={() => handleRemoveFile(0)}
-                  style={{ fontSize: '12px', padding: '4px 12px', height: '30px' }}
-                >
-                  Change File
-                </button>
-              </div>
 
-              {/* Interactive Audio Waveform Trimmer or Video Timeline Trimmer */}
-              {tool.id === 'audio-trim' ? (
-                <AudioWaveformTrimmer
+                {/* Interactive Visual PDF Page Organizer */}
+                <PdfPageOrganizer
                   file={files[0]}
-                  startTime={audioStart}
-                  endTime={audioEnd}
-                  onChange={(start, end) => {
-                    setAudioStart(start);
-                    setAudioEnd(end);
+                  mode={organizerMode}
+                  onPagesChange={(p, isValid) => {
+                    setOrganizerPages(p);
+                    setHasValidPages(isValid);
                   }}
                 />
-              ) : (
-                <VideoTimelineTrimmer
-                  file={files[0]}
-                  startTime={audioStart}
-                  endTime={audioEnd}
-                  onChange={(start, end) => {
-                    setAudioStart(start);
-                    setAudioEnd(end);
-                  }}
-                />
-              )}
-            </div>
-          ) : (
-            <>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <FileDropzone onFilesSelected={handleFilesSelected} accept={tool.accepts} />
               </div>
+            ) : isMediaTrimTool ? (
+              <div>
+                {/* File Info Banner */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '1.25rem',
+                    padding: '12px 16px',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-lg)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                    <div
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '8px',
+                        background: 'var(--bg-muted)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        border: '1px solid var(--border)',
+                        fontSize: '18px',
+                      }}
+                    >
+                      {tool.id === 'audio-trim' ? '🎵' : '🎬'}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {files[0].name}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--fg-muted)' }}>
+                        {formatFileSize(files[0].size)}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={() => handleRemoveFile(0)}
+                    style={{ fontSize: '12px', padding: '4px 12px', height: '30px' }}
+                  >
+                    Change File
+                  </button>
+                </div>
 
-              {files.length > 0 && (
+                {/* Interactive Audio Waveform Trimmer or Video Timeline Trimmer */}
+                {tool.id === 'audio-trim' ? (
+                  <AudioWaveformTrimmer
+                    file={files[0]}
+                    startTime={audioStart}
+                    endTime={audioEnd}
+                    onChange={(start, end) => {
+                      setAudioStart(start);
+                      setAudioEnd(end);
+                    }}
+                  />
+                ) : (
+                  <VideoTimelineTrimmer
+                    file={files[0]}
+                    startTime={audioStart}
+                    endTime={audioEnd}
+                    onChange={(start, end) => {
+                      setAudioStart(start);
+                      setAudioEnd(end);
+                    }}
+                  />
+                )}
+              </div>
+            ) : (
+              <div>
+                {/* Uploaded Files Card */}
                 <div className="card" style={{ marginBottom: '1.5rem' }}>
-                  <div style={{ fontWeight: '500', marginBottom: '12px' }}>
-                    {t('uploadedFiles')} ({files.length})
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <div style={{ fontWeight: '600', fontSize: '15px' }}>
+                      {t('uploadedFiles')} ({files.length})
+                    </div>
+                    {tool.multiple && (
+                      <span style={{ fontSize: '12px', color: 'var(--fg-muted)' }}>
+                        Total: {formatFileSize(files.reduce((acc, f) => acc + f.size, 0))}
+                      </span>
+                    )}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {files.map((file, idx) => (
@@ -576,110 +594,169 @@ export default function ToolPage() {
                     ))}
                   </div>
                 </div>
-              )}
-            </>
-          )}
 
-          {/* Interactive Signature Canvas for Sign Tool */}
-          {tool.id === 'pdf-protect' && (
-            <div className="card" style={{ marginBottom: '1.5rem' }}>
-              <div style={{ fontWeight: '500', marginBottom: '12px' }}>Digital Signature</div>
-              <SignatureCanvas onSignatureChange={setSignatureDataUrl} />
-            </div>
-          )}
-
-          {/* Tool Options (only for non-visual tools and non-trim tools) */}
-          {(files.length > 0 || tool.id === 'pdf-protect') && !isVisualOrganizerTool && !isMediaTrimTool && (
-            <div className="card" style={{ marginBottom: '1.5rem' }}>
-              <div style={{ fontWeight: '500', marginBottom: '1rem' }}>{t('toolOptions')}</div>
-
-              {/* Compression Controls for PDF & Image */}
-              {isCompressionTool && (
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label className="option-label" style={{ marginBottom: '10px' }}>
-                    Compression Preset
-                  </label>
-
-                  {/* 3 Quick Presets */}
-                  <div className="compression-preset-grid">
-                    <button
-                      type="button"
-                      className={`compression-preset-btn ${compressionPreset === 'extreme' ? 'compression-preset-btn--active' : ''}`}
-                      onClick={() => {
-                        setCompressionPreset('extreme');
-                        setCompressionLevel(80);
-                      }}
-                    >
-                      <div style={{ fontWeight: 650, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>⚡ Extreme</span>
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'var(--fg-muted)', marginTop: '4px', lineHeight: 1.3 }}>
-                        ~75% smaller · Strict portal limits
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      className={`compression-preset-btn ${compressionPreset === 'recommended' ? 'compression-preset-btn--active' : ''}`}
-                      onClick={() => {
-                        setCompressionPreset('recommended');
-                        setCompressionLevel(60);
-                      }}
-                    >
-                      <div style={{ fontWeight: 650, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>⚖️ Recommended</span>
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'var(--fg-muted)', marginTop: '4px', lineHeight: 1.3 }}>
-                        ~55% smaller · High clarity & balance
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      className={`compression-preset-btn ${compressionPreset === 'light' ? 'compression-preset-btn--active' : ''}`}
-                      onClick={() => {
-                        setCompressionPreset('light');
-                        setCompressionLevel(30);
-                      }}
-                    >
-                      <div style={{ fontWeight: 650, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>💎 High Quality</span>
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'var(--fg-muted)', marginTop: '4px', lineHeight: 1.3 }}>
-                        ~30% smaller · Print-ready details
-                      </div>
-                    </button>
+                {/* Compact Dropzone for multi-file tools */}
+                {tool.multiple && (
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <FileDropzone onFilesSelected={handleFilesSelected} accept={tool.accepts} />
                   </div>
+                )}
 
-                  {/* Fine-Tuning Slider */}
-                  <div className="option-group" style={{ marginTop: '1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span className="option-label" style={{ margin: 0 }}>
-                        Fine-Tune Compression Strength
-                      </span>
-                      <span style={{ fontSize: '12px', fontWeight: 650, color: 'var(--fg)' }}>
-                        {compressionLevel}%
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min="15"
-                      max="85"
-                      step="5"
-                      value={compressionLevel}
-                      onChange={(e) => {
-                        setCompressionLevel(Number(e.target.value));
-                        setCompressionPreset('custom');
-                      }}
-                    />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--fg-muted)', marginTop: '4px' }}>
-                      <span>Higher Quality (15%)</span>
-                      <span>Smaller Size (85%)</span>
-                    </div>
+                {/* Interactive Signature Canvas for Sign Tool */}
+                {tool.id === 'pdf-protect' && (
+                  <div className="card" style={{ marginBottom: '1.5rem' }}>
+                    <div style={{ fontWeight: '500', marginBottom: '12px' }}>Digital Signature</div>
+                    <SignatureCanvas onSignatureChange={setSignatureDataUrl} />
                   </div>
+                )}
+              </div>
+            )}
+          </div>
 
-                  {/* Live File Size Estimation Banner */}
-                  {files.length > 0 && (
+          {/* Right Column: Options, Process Action, & Results (Occupies Right Area) */}
+          <div>
+            {/* Visual Organizer or Media Trim Tools Sticky Action Card */}
+            {(isVisualOrganizerTool || isMediaTrimTool) && !result && (
+              <div className="card" style={{ position: 'sticky', top: '24px', marginBottom: '1.5rem' }}>
+                <div style={{ fontWeight: 650, fontSize: '16px', marginBottom: '6px' }}>
+                  {tool.name}
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--fg-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
+                  {tool.id === 'audio-trim'
+                    ? 'Listen to the trimmed segment preview and drag handles to adjust. Then click Process.'
+                    : tool.id === 'video-trim'
+                    ? 'Preview the video frames and cut boundaries. Then click Process to export.'
+                    : tool.id === 'pdf-reorder'
+                    ? 'Drag cards or click arrows to reorder pages. Then click below to generate your reordered PDF.'
+                    : tool.id === 'pdf-rotate'
+                    ? 'Rotate individual pages or rotate all by 90°, then click below to apply rotations.'
+                    : 'Click pages to select/unselect, then click below to extract them into a new document.'}
+                </p>
+
+                <div
+                  style={{
+                    padding: '10px 12px',
+                    background: 'var(--bg-muted)',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border)',
+                    marginBottom: '16px',
+                    fontSize: '12.5px',
+                  }}
+                >
+                  <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {files[0].name}
+                  </div>
+                  <div style={{ color: 'var(--fg-muted)', fontSize: '11.5px', marginTop: '3px' }}>
+                    {formatFileSize(files[0].size)}
+                    {organizerPages.length > 0 && ` · ${organizerPages.length} ${organizerPages.length === 1 ? 'page' : 'pages'}`}
+                    {isMediaTrimTool && ` · Cut: ${(audioEnd - audioStart).toFixed(1)}s`}
+                  </div>
+                </div>
+
+                <button
+                  className="btn btn-primary btn-lg"
+                  style={{ width: '100%' }}
+                  onClick={handleProcess}
+                  disabled={isProcessing || !hasValidPages}
+                >
+                  {isProcessing ? t('processing') : `${t('process')} ${tool.name}`}
+                </button>
+              </div>
+            )}
+
+            {/* Standard Tools Options & Action Card (Occupies the right area!) */}
+            {!isVisualOrganizerTool && !isMediaTrimTool && !result && (
+              <div className="card" style={{ position: 'sticky', top: '24px', marginBottom: '1.5rem' }}>
+                <div style={{ fontWeight: 650, fontSize: '16px', marginBottom: '1rem' }}>
+                  {hasOptions ? t('toolOptions') : tool.name}
+                </div>
+
+                {/* Compression Controls for PDF & Image */}
+                {isCompressionTool && (
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <label className="option-label" style={{ marginBottom: '10px' }}>
+                      Compression Preset
+                    </label>
+
+                    {/* 3 Quick Presets */}
+                    <div className="compression-preset-grid">
+                      <button
+                        type="button"
+                        className={`compression-preset-btn ${compressionPreset === 'extreme' ? 'compression-preset-btn--active' : ''}`}
+                        onClick={() => {
+                          setCompressionPreset('extreme');
+                          setCompressionLevel(80);
+                        }}
+                      >
+                        <div style={{ fontWeight: 650, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>⚡ Extreme</span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--fg-muted)', marginTop: '4px', lineHeight: 1.3 }}>
+                          ~75% smaller · Strict portal limits
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        className={`compression-preset-btn ${compressionPreset === 'recommended' ? 'compression-preset-btn--active' : ''}`}
+                        onClick={() => {
+                          setCompressionPreset('recommended');
+                          setCompressionLevel(60);
+                        }}
+                      >
+                        <div style={{ fontWeight: 650, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>⚖️ Recommended</span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--fg-muted)', marginTop: '4px', lineHeight: 1.3 }}>
+                          ~55% smaller · High clarity & balance
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        className={`compression-preset-btn ${compressionPreset === 'light' ? 'compression-preset-btn--active' : ''}`}
+                        onClick={() => {
+                          setCompressionPreset('light');
+                          setCompressionLevel(30);
+                        }}
+                      >
+                        <div style={{ fontWeight: 650, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>💎 High Quality</span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--fg-muted)', marginTop: '4px', lineHeight: 1.3 }}>
+                          ~30% smaller · Print-ready details
+                        </div>
+                      </button>
+                    </div>
+
+                    {/* Fine-Tuning Slider */}
+                    <div className="option-group" style={{ marginTop: '1rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span className="option-label" style={{ margin: 0 }}>
+                          Fine-Tune Compression Strength
+                        </span>
+                        <span style={{ fontSize: '12px', fontWeight: 650, color: 'var(--fg)' }}>
+                          {compressionLevel}%
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="15"
+                        max="85"
+                        step="5"
+                        value={compressionLevel}
+                        onChange={(e) => {
+                          setCompressionLevel(Number(e.target.value));
+                          setCompressionPreset('custom');
+                        }}
+                      />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--fg-muted)', marginTop: '4px' }}>
+                        <span>Higher Quality (15%)</span>
+                        <span>Smaller Size (85%)</span>
+                      </div>
+                    </div>
+
+                    {/* Live File Size Estimation Banner */}
                     <div className="compression-estimate-bar">
                       <div>
                         <span style={{ color: 'var(--fg-muted)' }}>Original: </span>
@@ -695,222 +772,203 @@ export default function ToolPage() {
                         </span>
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
-
-              {tool.id === 'pdf-split' && (
-                <div className="option-group">
-                  <label className="option-label">Page Ranges</label>
-                  <input
-                    type="text"
-                    className="input"
-                    placeholder="e.g. 1-3, 4-6 (Leave empty for all pages)"
-                    value={pageRange}
-                    onChange={(e) => setPageRange(e.target.value)}
-                  />
-                </div>
-              )}
-
-              {tool.id === 'audio-volume' && (
-                <div className="option-group">
-                  <label className="option-label">Volume Gain ({Math.round(volumeLevel * 100)}%)</label>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="3.0"
-                    step="0.1"
-                    value={volumeLevel}
-                    onChange={(e) => setVolumeLevel(Number(e.target.value))}
-                  />
-                </div>
-              )}
-
-              {(tool.id === 'audio-speed' || tool.id === 'video-speed') && (
-                <SpeedController
-                  file={files[0]}
-                  type={tool.id === 'video-speed' ? 'video' : 'audio'}
-                  speedRatio={speedRatio}
-                  onChange={(newSpeed) => setSpeedRatio(newSpeed)}
-                />
-              )}
-
-              {(tool.id === 'pdf-rotate' || tool.id === 'image-rotate') && (
-                <div className="option-group">
-                  <label className="option-label">Rotation Angle</label>
-                  <select
-                    className="input"
-                    value={rotateAngle}
-                    onChange={(e) => setRotateAngle(e.target.value)}
-                  >
-                    <option value={90}>90° Clockwise</option>
-                    <option value={180}>180°</option>
-                    <option value={270}>270° (90° Counter-Clockwise)</option>
-                  </select>
-                </div>
-              )}
-
-              {tool.id === 'pdf-watermark' && (
-                <div className="option-group">
-                  <label className="option-label">Watermark Text</label>
-                  <input
-                    type="text"
-                    className="input"
-                    value={watermarkText}
-                    onChange={(e) => setWatermarkText(e.target.value)}
-                  />
-                </div>
-              )}
-
-              {tool.id === 'image-convert' && (
-                <div className="option-group">
-                  <label className="option-label">Output Format</label>
-                  <select
-                    className="input"
-                    value={imageFormat}
-                    onChange={(e) => setImageFormat(e.target.value)}
-                  >
-                    <option value="image/jpeg">JPEG (.jpg)</option>
-                    <option value="image/png">PNG (.png)</option>
-                    <option value="image/webp">WebP (.webp)</option>
-                  </select>
-                </div>
-              )}
-
-              <button
-                className="btn btn-primary btn-lg"
-                style={{ width: '100%', marginTop: '1rem' }}
-                onClick={handleProcess}
-                disabled={isProcessing}
-              >
-                {isProcessing
-                  ? t('processing')
-                  : (tool.id === 'audio-speed' || tool.id === 'video-speed')
-                  ? `${t('process')} ${tool.name} (${speedRatio}x)`
-                  : `${t('process')} ${tool.name}`}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Results & Sidebar */}
-        <div>
-          {/* Sticky action card for Visual Organizer or Media Trim Tools */}
-          {(isVisualOrganizerTool || isMediaTrimTool) && files.length > 0 && !result && (
-            <div className="card" style={{ position: 'sticky', top: '24px', marginBottom: '1.5rem' }}>
-              <div style={{ fontWeight: 650, fontSize: '16px', marginBottom: '6px' }}>
-                {tool.name}
-              </div>
-              <p style={{ fontSize: '13px', color: 'var(--fg-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
-                {tool.id === 'audio-trim'
-                  ? 'Listen to the trimmed segment preview and drag handles to adjust. Then click Process.'
-                  : tool.id === 'video-trim'
-                  ? 'Preview the video frames and cut boundaries. Then click Process to export.'
-                  : tool.id === 'pdf-reorder'
-                  ? 'Drag cards or click arrows to reorder pages. Then click below to generate your reordered PDF.'
-                  : tool.id === 'pdf-rotate'
-                  ? 'Rotate individual pages or rotate all by 90°, then click below to apply rotations.'
-                  : 'Click pages to select/unselect, then click below to extract them into a new document.'}
-              </p>
-
-              <div
-                style={{
-                  padding: '10px 12px',
-                  background: 'var(--bg-muted)',
-                  borderRadius: '8px',
-                  border: '1px solid var(--border)',
-                  marginBottom: '16px',
-                  fontSize: '12.5px',
-                }}
-              >
-                <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {files[0].name}
-                </div>
-                <div style={{ color: 'var(--fg-muted)', fontSize: '11.5px', marginTop: '3px' }}>
-                  {formatFileSize(files[0].size)}
-                  {organizerPages.length > 0 && ` · ${organizerPages.length} ${organizerPages.length === 1 ? 'page' : 'pages'}`}
-                  {isMediaTrimTool && ` · Cut: ${(audioEnd - audioStart).toFixed(1)}s`}
-                </div>
-              </div>
-
-              <button
-                className="btn btn-primary btn-lg"
-                style={{ width: '100%' }}
-                onClick={handleProcess}
-                disabled={isProcessing || !hasValidPages}
-              >
-                {isProcessing ? t('processing') : `${t('process')} ${tool.name}`}
-              </button>
-            </div>
-          )}
-
-          {isProcessing && (
-            <div className="processing-panel">
-              <div className="processing-panel__header">
-                <span style={{ fontWeight: '500' }}>{t('processing')}</span>
-                <div className="spinner" />
-              </div>
-              <div className="processing-panel__body">
-                <ProgressBar progress={progress} statusText={statusText} animated />
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="card" style={{ borderColor: 'var(--danger)', background: 'rgba(239,68,68,0.05)' }}>
-              <div style={{ color: 'var(--danger)', fontWeight: '500', marginBottom: '4px' }}>
-                {t('error')}
-              </div>
-              <div style={{ fontSize: '14px', color: 'var(--fg-muted)' }}>{error}</div>
-            </div>
-          )}
-
-          {result && (
-            <div className="card animate-fade-in-up" style={{ borderColor: 'var(--success)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <span style={{ color: 'var(--success)', fontSize: '1.25rem' }}>✓</span>
-                <span style={{ fontWeight: '500', fontSize: '1.125rem' }}>{t('done')}</span>
-              </div>
-
-              {result.isMultiple ? (
-                <div>
-                  <p style={{ fontSize: '14px', color: 'var(--fg-muted)', marginBottom: '1rem' }}>
-                    Generated {result.items.length} output files:
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '1.5rem' }}>
-                    {result.items.map((item, idx) => (
-                      <div key={idx} className="file-preview">
-                        <div className="file-preview__info">
-                          <div className="file-preview__name">{item.name}</div>
-                        </div>
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => downloadFile(item.data, item.name)}
-                        >
-                          {t('download')}
-                        </button>
-                      </div>
-                    ))}
                   </div>
-                </div>
-              ) : (
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <div className="file-preview">
-                    <div className="file-preview__info">
-                      <div className="file-preview__name">{result.name}</div>
-                      {result.size && <div className="file-preview__size">{formatFileSize(result.size)}</div>}
+                )}
+
+                {/* Speed Controller for Audio and Video */}
+                {(tool.id === 'audio-speed' || tool.id === 'video-speed') && (
+                  <SpeedController
+                    file={files[0]}
+                    type={tool.id === 'video-speed' ? 'video' : 'audio'}
+                    speedRatio={speedRatio}
+                    onChange={(newSpeed) => setSpeedRatio(newSpeed)}
+                  />
+                )}
+
+                {/* PDF Split */}
+                {tool.id === 'pdf-split' && (
+                  <div className="option-group">
+                    <label className="option-label">Page Ranges</label>
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="e.g. 1-3, 4-6 (Leave empty for all pages)"
+                      value={pageRange}
+                      onChange={(e) => setPageRange(e.target.value)}
+                    />
+                  </div>
+                )}
+
+                {/* Audio Volume */}
+                {tool.id === 'audio-volume' && (
+                  <div className="option-group">
+                    <label className="option-label">Volume Gain ({Math.round(volumeLevel * 100)}%)</label>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="3.0"
+                      step="0.1"
+                      value={volumeLevel}
+                      onChange={(e) => setVolumeLevel(Number(e.target.value))}
+                    />
+                  </div>
+                )}
+
+                {/* Image Rotate */}
+                {tool.id === 'image-rotate' && (
+                  <div className="option-group">
+                    <label className="option-label">Rotation Angle</label>
+                    <select
+                      className="input"
+                      value={rotateAngle}
+                      onChange={(e) => setRotateAngle(e.target.value)}
+                    >
+                      <option value={90}>90° Clockwise</option>
+                      <option value={180}>180°</option>
+                      <option value={270}>270° (90° Counter-Clockwise)</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* PDF Watermark */}
+                {tool.id === 'pdf-watermark' && (
+                  <div className="option-group">
+                    <label className="option-label">Watermark Text</label>
+                    <input
+                      type="text"
+                      className="input"
+                      value={watermarkText}
+                      onChange={(e) => setWatermarkText(e.target.value)}
+                    />
+                  </div>
+                )}
+
+                {/* Image Convert */}
+                {tool.id === 'image-convert' && (
+                  <div className="option-group">
+                    <label className="option-label">Output Format</label>
+                    <select
+                      className="input"
+                      value={imageFormat}
+                      onChange={(e) => setImageFormat(e.target.value)}
+                    >
+                      <option value="image/jpeg">JPEG (.jpg)</option>
+                      <option value="image/png">PNG (.png)</option>
+                      <option value="image/webp">WebP (.webp)</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* Summary for tools without extra configuration options */}
+                {!hasOptions && (
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <p style={{ fontSize: '13px', color: 'var(--fg-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
+                      {tool.description}
+                    </p>
+                    <div
+                      style={{
+                        padding: '10px 12px',
+                        background: 'var(--bg-muted)',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border)',
+                        fontSize: '12.5px',
+                      }}
+                    >
+                      <div style={{ fontWeight: 600 }}>{files.length} {files.length === 1 ? 'file' : 'files'} ready</div>
+                      <div style={{ color: 'var(--fg-muted)', fontSize: '11.5px', marginTop: '2px' }}>
+                        Total: {formatFileSize(files.reduce((acc, f) => acc + f.size, 0))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              <button className="btn btn-primary btn-lg" style={{ width: '100%' }} onClick={handleDownload}>
-                {t('download')} {result.isMultiple ? '(All Files)' : ''}
-              </button>
-            </div>
-          )}
+                {/* Primary Process Button */}
+                <button
+                  className="btn btn-primary btn-lg"
+                  style={{ width: '100%', marginTop: '0.75rem' }}
+                  onClick={handleProcess}
+                  disabled={isProcessing}
+                >
+                  {isProcessing
+                    ? t('processing')
+                    : (tool.id === 'audio-speed' || tool.id === 'video-speed')
+                    ? `${t('process')} ${tool.name} (${speedRatio}x)`
+                    : `${t('process')} ${tool.name}`}
+                </button>
+              </div>
+            )}
+
+            {/* Processing Panel */}
+            {isProcessing && (
+              <div className="processing-panel">
+                <div className="processing-panel__header">
+                  <span style={{ fontWeight: '500' }}>{t('processing')}</span>
+                  <div className="spinner" />
+                </div>
+                <div className="processing-panel__body">
+                  <ProgressBar progress={progress} statusText={statusText} animated />
+                </div>
+              </div>
+            )}
+
+            {/* Error Alert */}
+            {error && (
+              <div className="card" style={{ borderColor: 'var(--danger)', background: 'rgba(239,68,68,0.05)', marginBottom: '1.5rem' }}>
+                <div style={{ color: 'var(--danger)', fontWeight: '500', marginBottom: '4px' }}>
+                  {t('error')}
+                </div>
+                <div style={{ fontSize: '14px', color: 'var(--fg-muted)' }}>{error}</div>
+              </div>
+            )}
+
+            {/* Result Card */}
+            {result && (
+              <div className="card animate-fade-in-up" style={{ borderColor: 'var(--success)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <span style={{ color: 'var(--success)', fontSize: '1.25rem' }}>✓</span>
+                  <span style={{ fontWeight: '500', fontSize: '1.125rem' }}>{t('done')}</span>
+                </div>
+
+                {result.isMultiple ? (
+                  <div>
+                    <p style={{ fontSize: '14px', color: 'var(--fg-muted)', marginBottom: '1rem' }}>
+                      Generated {result.items.length} output files:
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '1.5rem' }}>
+                      {result.items.map((item, idx) => (
+                        <div key={idx} className="file-preview">
+                          <div className="file-preview__info">
+                            <div className="file-preview__name">{item.name}</div>
+                          </div>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => downloadFile(item.data, item.name)}
+                          >
+                            {t('download')}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <div className="file-preview">
+                      <div className="file-preview__info">
+                        <div className="file-preview__name">{result.name}</div>
+                        {result.size && <div className="file-preview__size">{formatFileSize(result.size)}</div>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <button className="btn btn-primary btn-lg" style={{ width: '100%' }} onClick={handleDownload}>
+                  {t('download')} {result.isMultiple ? '(All Files)' : ''}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -1702,13 +1702,27 @@ p, .text-body, .text-caption, .hero-subheading {
 
 .grid-organizer-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: 2rem;
   align-items: start;
 }
 
 @media (max-width: 992px) {
   .grid-organizer-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.tool-page-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .tool-page-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
