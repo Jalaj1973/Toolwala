@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import FileDropzone from '../components/FileDropzone';
 import ToolCard from '../components/ToolCard';
 import StatCard from '../components/StatCard';
 import { popularTools, tools } from '../data/tools';
@@ -11,52 +10,60 @@ export default function HomePage() {
 
   return (
     <div className="ambient-hero-glow">
-      {/* Hero Section */}
-      <section className="section section--hero container">
-        <div className="grid-2col">
-          <div style={{ paddingTop: '1rem' }}>
-            {/* Announcement Badge */}
-            <div style={{ marginBottom: '16px' }}>
-              <Link
-                to="/exams"
-                className="badge badge-glow"
-                style={{ padding: '6px 12px', gap: '8px', cursor: 'pointer', display: 'inline-flex' }}
-              >
-                <span style={{ fontWeight: 650 }}>✨ Toolwala 2.0</span>
-                <span style={{ opacity: 0.5 }}>•</span>
-                <span>Official Exam Specs & 42+ File Tools</span>
-                <span>→</span>
-              </Link>
-            </div>
+      {/* Hero Section - Centered & Focused without ambiguous dropzone */}
+      <section className="section section--hero container" style={{ textAlign: 'center', maxWidth: '840px', margin: '0 auto', padding: '4.5rem 1.5rem 3rem' }}>
+        {/* Announcement Badge */}
+        <div style={{ marginBottom: '18px', display: 'flex', justifyContent: 'center' }}>
+          <Link
+            to="/exams"
+            className="badge badge-glow"
+            style={{ padding: '6px 14px', gap: '8px', cursor: 'pointer', display: 'inline-flex', textDecoration: 'none' }}
+          >
+            <span style={{ fontWeight: 650 }}>✨ Toolwala 2.0</span>
+            <span style={{ opacity: 0.5 }}>•</span>
+            <span>Official Exam Specs & 42+ File Tools</span>
+            <span>→</span>
+          </Link>
+        </div>
 
-            <h1 className="text-heading-lg" style={{ textBalance: 'balance' }}>
-              {t('heroTitle')}
-            </h1>
+        <h1 className="text-heading-lg" style={{ fontSize: 'clamp(2.25rem, 5vw, 3.25rem)', lineHeight: '1.15', letterSpacing: '-0.035em', textBalance: 'balance', margin: '0 auto' }}>
+          {t('heroTitle')}
+        </h1>
 
-            <p className="text-body" style={{ marginTop: '1.25rem', maxWidth: '48ch' }}>
-              {t('heroDesc')}
-            </p>
+        <p className="text-body" style={{ marginTop: '1.25rem', maxWidth: '54ch', margin: '1.25rem auto 0', fontSize: '1.0625rem', color: 'var(--fg-muted)', lineHeight: '1.6' }}>
+          {t('heroDesc')}
+        </p>
 
-            <div style={{ marginTop: '2rem', display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-              <Link to="/tools" className="btn btn-primary btn-lg">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="7" height="7" />
-                  <rect x="14" y="3" width="7" height="7" />
-                  <rect x="14" y="14" width="7" height="7" />
-                  <rect x="3" y="14" width="7" height="7" />
-                </svg>
-                <span>{t('exploreTools')}</span>
-              </Link>
+        <div style={{ marginTop: '2.25rem', display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <Link to="/tools" className="btn btn-primary btn-lg" style={{ height: '44px', padding: '0 22px', fontSize: '14px', borderRadius: '10px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
+            <span>{t('exploreTools')}</span>
+          </Link>
 
-              <Link to="/exams" className="btn btn-secondary btn-lg">
-                <span>🎯 Exam Specs</span>
-              </Link>
-            </div>
-          </div>
+          <Link to="/exams" className="btn btn-secondary btn-lg" style={{ height: '44px', padding: '0 22px', fontSize: '14px', borderRadius: '10px' }}>
+            <span>Exam Specs</span>
+          </Link>
+        </div>
 
-          <div style={{ width: '100%' }}>
-            <FileDropzone />
-          </div>
+        {/* Quick Suite Jump Links */}
+        <div style={{ marginTop: '2.25rem', display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <Link to="/tools/pdf" className="badge" style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none', color: 'var(--fg-muted)', transition: 'all 0.15s ease' }}>
+            📄 PDF Tools (9)
+          </Link>
+          <Link to="/tools/image" className="badge" style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none', color: 'var(--fg-muted)', transition: 'all 0.15s ease' }}>
+            🖼️ Image Tools (6)
+          </Link>
+          <Link to="/tools/video" className="badge" style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none', color: 'var(--fg-muted)', transition: 'all 0.15s ease' }}>
+            🎬 Video Tools (4)
+          </Link>
+          <Link to="/tools/audio" className="badge" style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none', color: 'var(--fg-muted)', transition: 'all 0.15s ease' }}>
+            🎵 Audio Tools (3)
+          </Link>
         </div>
       </section>
 
