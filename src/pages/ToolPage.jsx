@@ -9,6 +9,8 @@ import { getToolById } from '../data/tools';
 import { downloadFile, formatFileSize } from '../utils/fileUtils';
 import { useLanguage } from '../context/LanguageContext';
 import PdfPageOrganizer from '../components/PdfPageOrganizer';
+import AudioWaveformTrimmer from '../components/AudioWaveformTrimmer';
+import VideoTimelineTrimmer from '../components/VideoTimelineTrimmer';
 
 // Processors
 import {
@@ -83,6 +85,9 @@ export default function ToolPage() {
   const isCompressionTool = tool && (tool.id === 'pdf-compress' || tool.id === 'image-compress');
   const [compressionPreset, setCompressionPreset] = useState('recommended');
   const [compressionLevel, setCompressionLevel] = useState(60);
+
+  // Media Trim state (Audio / Video)
+  const isMediaTrimTool = tool && (tool.id === 'audio-trim' || tool.id === 'video-trim');
 
   useEffect(() => {
     if (location.state && location.state.files) {
@@ -415,7 +420,7 @@ export default function ToolPage() {
         <p className="text-body">{tool.description}</p>
       </div>
 
-      <div className={isVisualOrganizerTool && files.length > 0 ? 'grid-organizer-layout' : 'grid-2col'}>
+      <div className={(isVisualOrganizerTool || isMediaTrimTool) && files.length > 0 ? 'grid-organizer-layout' : 'grid-2col'}>
         {/* Left Column: Upload & Options */}
         <div>
           {isVisualOrganizerTool && files.length > 0 ? (
@@ -479,6 +484,80 @@ export default function ToolPage() {
                 }}
               />
             </div>
+          ) : isMediaTrimTool && files.length > 0 ? (
+            <div>
+              {/* File Info Banner */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '1.25rem',
+                  padding: '12px 16px',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-lg)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '8px',
+                      background: 'var(--bg-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      border: '1px solid var(--border)',
+                      fontSize: '18px',
+                    }}
+                  >
+                    {tool.id === 'audio-trim' ? '🎵' : '🎬'}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {files[0].name}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--fg-muted)' }}>
+                      {formatFileSize(files[0].size)}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => handleRemoveFile(0)}
+                  style={{ fontSize: '12px', padding: '4px 12px', height: '30px' }}
+                >
+                  Change File
+                </button>
+              </div>
+
+              {/* Interactive Audio Waveform Trimmer or Video Timeline Trimmer */}
+              {tool.id === 'audio-trim' ? (
+                <AudioWaveformTrimmer
+                  file={files[0]}
+                  startTime={audioStart}
+                  endTime={audioEnd}
+                  onChange={(start, end) => {
+                    setAudioStart(start);
+                    setAudioEnd(end);
+                  }}
+                />
+              ) : (
+                <VideoTimelineTrimmer
+                  file={files[0]}
+                  startTime={audioStart}
+                  endTime={audioEnd}
+                  onChange={(start, end) => {
+                    setAudioStart(start);
+                    setAudioEnd(end);
+                  }}
+                />
+              )}
+            </div>
           ) : (
             <>
               <div style={{ marginBottom: '1.5rem' }}>
@@ -508,8 +587,8 @@ export default function ToolPage() {
             </div>
           )}
 
-          {/* Tool Options (only for non-visual tools) */}
-          {(files.length > 0 || tool.id === 'pdf-protect') && !isVisualOrganizerTool && (
+          {/* Tool Options (only for non-visual tools and non-trim tools) */}
+          {(files.length > 0 || tool.id === 'pdf-protect') && !isVisualOrganizerTool && !isMediaTrimTool && (
             <div className="card" style={{ marginBottom: '1.5rem' }}>
               <div style={{ fontWeight: '500', marginBottom: '1rem' }}>{t('toolOptions')}</div>
 
@@ -632,29 +711,6 @@ export default function ToolPage() {
                 </div>
               )}
 
-              {(tool.id === 'audio-trim' || tool.id === 'video-trim') && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div className="option-group">
-                    <label className="option-label">Start Time (sec)</label>
-                    <input
-                      type="number"
-                      className="input"
-                      value={audioStart}
-                      onChange={(e) => setAudioStart(e.target.value)}
-                    />
-                  </div>
-                  <div className="option-group">
-                    <label className="option-label">End Time (sec)</label>
-                    <input
-                      type="number"
-                      className="input"
-                      value={audioEnd}
-                      onChange={(e) => setAudioEnd(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-
               {tool.id === 'audio-volume' && (
                 <div className="option-group">
                   <label className="option-label">Volume Gain ({Math.round(volumeLevel * 100)}%)</label>
@@ -739,14 +795,18 @@ export default function ToolPage() {
 
         {/* Right Column: Results & Sidebar */}
         <div>
-          {/* Sticky action card for Visual Organizer Tools */}
-          {isVisualOrganizerTool && files.length > 0 && !result && (
+          {/* Sticky action card for Visual Organizer or Media Trim Tools */}
+          {(isVisualOrganizerTool || isMediaTrimTool) && files.length > 0 && !result && (
             <div className="card" style={{ position: 'sticky', top: '24px', marginBottom: '1.5rem' }}>
               <div style={{ fontWeight: 650, fontSize: '16px', marginBottom: '6px' }}>
                 {tool.name}
               </div>
               <p style={{ fontSize: '13px', color: 'var(--fg-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
-                {tool.id === 'pdf-reorder'
+                {tool.id === 'audio-trim'
+                  ? 'Listen to the trimmed segment preview and drag handles to adjust. Then click Process.'
+                  : tool.id === 'video-trim'
+                  ? 'Preview the video frames and cut boundaries. Then click Process to export.'
+                  : tool.id === 'pdf-reorder'
                   ? 'Drag cards or click arrows to reorder pages. Then click below to generate your reordered PDF.'
                   : tool.id === 'pdf-rotate'
                   ? 'Rotate individual pages or rotate all by 90°, then click below to apply rotations.'
@@ -769,6 +829,7 @@ export default function ToolPage() {
                 <div style={{ color: 'var(--fg-muted)', fontSize: '11.5px', marginTop: '3px' }}>
                   {formatFileSize(files[0].size)}
                   {organizerPages.length > 0 && ` · ${organizerPages.length} ${organizerPages.length === 1 ? 'page' : 'pages'}`}
+                  {isMediaTrimTool && ` · Cut: ${(audioEnd - audioStart).toFixed(1)}s`}
                 </div>
               </div>
 
