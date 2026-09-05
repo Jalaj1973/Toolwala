@@ -264,6 +264,7 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .header__nav-link:hover {
@@ -275,6 +276,13 @@ textarea {
   color: var(--fg);
   background: var(--bg-surface-hover);
   font-weight: 600;
+}
+
+.header__divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-hairline);
+  margin: 0 4px;
 }
 
 /* Header Right Actions */

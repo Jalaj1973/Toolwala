@@ -27,15 +27,15 @@ export default function LanguageSelector() {
         title="Change Language"
         style={{
           width: 'auto',
-          padding: '0 10px',
-          gap: '6px',
-          fontSize: '13px',
-          fontWeight: 500,
+          padding: '0 8px',
+          gap: '5px',
+          fontSize: '12px',
+          fontWeight: 600,
+          whiteSpace: 'nowrap',
         }}
       >
-        <span>🌐</span>
-        <span>{currentLangObj.nativeName}</span>
-        <span style={{ fontSize: '10px', opacity: 0.6 }}>▼</span>
+        <span style={{ fontSize: '14px' }}>🌐</span>
+        <span>{currentLangObj.code.toUpperCase()}</span>
       </button>
 
       {isOpen && (
