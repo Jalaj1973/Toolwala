@@ -3,11 +3,14 @@ import { Link, NavLink } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import LanguageSelector from './LanguageSelector';
 import SearchModal from './SearchModal';
+import AuthModal from './AuthModal';
+import UserMenu from './UserMenu';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const { t } = useLanguage();
 
   // Keyboard shortcut Cmd+K / Ctrl+K for search
@@ -129,6 +132,9 @@ export default function Header() {
               </svg>
             </a>
 
+            {/* Supabase User Profile / Sign In */}
+            <UserMenu onOpenAuth={() => setAuthModalOpen(true)} />
+
             {/* Mobile Hamburger Menu Toggle */}
             <button
               className="header__mobile-toggle"
@@ -186,8 +192,20 @@ export default function Header() {
               Audio Tools
             </Link>
           </nav>
+
+          <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid var(--border-hairline)' }}>
+            <UserMenu
+              onOpenAuth={() => {
+                setMenuOpen(false);
+                setAuthModalOpen(true);
+              }}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Supabase Authentication Modal */}
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </>
   );
 }
