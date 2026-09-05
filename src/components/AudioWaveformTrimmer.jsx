@@ -124,7 +124,7 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
     };
   }, [file]);
 
-  // Draw the waveform canvas
+  // Draw the waveform canvas with dynamic theme support (Geist/shadcn monochromatic design)
   const drawWaveform = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || peaks.length === 0) return;
@@ -135,12 +135,21 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
 
     ctx.clearRect(0, 0, width, height);
 
+    const isDark = typeof document !== 'undefined' && (
+      document.documentElement.classList.contains('dark') ||
+      document.documentElement.getAttribute('data-theme') === 'dark'
+    );
+
+    const primaryColor = isDark ? '#fafafa' : '#09090b';
+    const dimmedColor = isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(9, 9, 11, 0.22)';
+    const baselineColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(9, 9, 11, 0.08)';
+
     const barWidth = width / peaks.length;
     const startX = duration > 0 ? (startTime / duration) * width : 0;
     const endX = duration > 0 ? (endTime / duration) * width : width;
 
     // Draw baseline
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.strokeStyle = baselineColor;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0, height / 2);
@@ -156,9 +165,9 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
       const isInKeepZone = x >= startX && x <= endX;
 
       if (isInKeepZone) {
-        ctx.fillStyle = '#22c55e'; // Vibrant green highlight in keep zone
+        ctx.fillStyle = primaryColor; // Sleek monochromatic theme primary
       } else {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; // Dimmed outside zone
+        ctx.fillStyle = dimmedColor; // Subtle dimmed outside zone
       }
 
       ctx.fillRect(x, y, Math.max(1.5, barWidth - 1), barHeight);
@@ -167,6 +176,18 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
 
   useEffect(() => {
     drawWaveform();
+  }, [drawWaveform]);
+
+  // Re-draw waveform if user switches dark/light theme
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      drawWaveform();
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme'],
+    });
+    return () => observer.disconnect();
   }, [drawWaveform]);
 
   // Audio Playback Listen Control
@@ -284,15 +305,15 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
         style={{ display: 'none' }}
       />
 
-      {/* Header with Title and "keep" indicator */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+      {/* Header with Title and Range Badge */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '18px' }}>✂️</span>
-          <span style={{ fontWeight: 650, fontSize: '16px' }}>Select the part to trim</span>
+          <span style={{ fontWeight: 650, fontSize: '16px' }}>Select Range to Trim</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="badge" style={{ padding: '3px 10px', fontSize: '11px', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', borderColor: 'rgba(34, 197, 94, 0.3)' }}>
-            keep
+          <span className="badge" style={{ padding: '3px 10px', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+            {formatShortTime(startTime)} – {formatShortTime(endTime)}
           </span>
           <span style={{ fontSize: '12px', color: 'var(--fg-muted)' }}>
             Selected: {formatTime(Math.max(0, endTime - startTime))}
@@ -310,35 +331,26 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
       )}
 
       {audioError && (
-        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.08)', color: '#ef4444', borderRadius: '8px', fontSize: '13px', marginBottom: '1rem' }}>
+        <div style={{ padding: '10px 14px', background: 'var(--danger-bg)', color: 'var(--danger)', borderRadius: 'var(--radius-md)', fontSize: '13px', marginBottom: '1rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
           {audioError}
         </div>
       )}
 
       {/* Interactive Waveform Container */}
       {!isLoadingAudio && (
-        <div style={{ position: 'relative', marginTop: '1.5rem', marginBottom: '2rem' }}>
+        <div style={{ position: 'relative', marginTop: '1.5rem', marginBottom: '2.25rem' }}>
           {/* Main Scrubber Track */}
           <div
             ref={containerRef}
             onClick={handleTrackClick}
-            style={{
-              position: 'relative',
-              width: '100%',
-              height: '96px',
-              background: '#09090b',
-              borderRadius: '8px',
-              border: '1px solid var(--border)',
-              overflow: 'hidden',
-              cursor: 'pointer',
-              userSelect: 'none',
-            }}
+            className="media-trimmer-track"
+            style={{ height: '100px' }}
           >
             {/* Waveform Canvas */}
             <canvas
               ref={canvasRef}
               width={900}
-              height={96}
+              height={100}
               style={{
                 width: '100%',
                 height: '100%',
@@ -348,58 +360,37 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
 
             {/* Left Unselected Dimmer */}
             <div
+              className="media-trimmer-dimmer"
               style={{
-                position: 'absolute',
-                top: 0,
                 left: 0,
-                bottom: 0,
                 width: `${startPercent}%`,
-                background: 'rgba(0, 0, 0, 0.65)',
-                pointerEvents: 'none',
               }}
             />
 
             {/* Middle Keep Zone Highlight */}
             <div
+              className="media-trimmer-keep-zone"
               style={{
-                position: 'absolute',
-                top: 0,
                 left: `${startPercent}%`,
-                bottom: 0,
                 width: `${endPercent - startPercent}%`,
-                background: 'rgba(34, 197, 94, 0.12)',
-                borderTop: '2px solid #22c55e',
-                borderBottom: '2px solid #22c55e',
-                pointerEvents: 'none',
               }}
             />
 
             {/* Right Unselected Dimmer */}
             <div
+              className="media-trimmer-dimmer"
               style={{
-                position: 'absolute',
-                top: 0,
                 left: `${endPercent}%`,
                 right: 0,
-                bottom: 0,
-                background: 'rgba(0, 0, 0, 0.65)',
-                pointerEvents: 'none',
               }}
             />
 
-            {/* Moving Playhead Cursor Line (Red/Orange) */}
+            {/* Moving Playhead Cursor Line */}
             {isPlaying && (
               <div
+                className="media-trimmer-playhead"
                 style={{
-                  position: 'absolute',
-                  top: 0,
-                  bottom: 0,
                   left: `${currentPercent}%`,
-                  width: '2px',
-                  background: '#ef4444',
-                  boxShadow: '0 0 8px #ef4444',
-                  pointerEvents: 'none',
-                  zIndex: 4,
                 }}
               />
             )}
@@ -407,104 +398,34 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
 
           {/* Left Handle (Crop Start) */}
           <div
+            className="media-trimmer-handle"
             onMouseDown={handlePointerDown('start')}
             onTouchStart={handlePointerDown('start')}
             style={{
-              position: 'absolute',
-              top: '-8px',
               left: `${startPercent}%`,
-              transform: 'translateX(-50%)',
-              zIndex: 10,
-              cursor: 'ew-resize',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              userSelect: 'none',
             }}
           >
-            {/* Top Green Handle Tab */}
-            <div
-              style={{
-                width: '18px',
-                height: '112px',
-                background: '#22c55e',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
-                border: '1px solid #15803d',
-              }}
-            >
-              <div style={{ width: '2px', height: '24px', background: '#fff', borderRadius: '1px', opacity: 0.8 }} />
+            <div className="media-trimmer-handle-bar" style={{ height: '112px' }}>
+              <div className="media-trimmer-handle-grip" style={{ height: '24px' }} />
             </div>
-            {/* Time Bubble Below Handle */}
-            <div
-              style={{
-                marginTop: '4px',
-                padding: '2px 6px',
-                background: '#09090b',
-                color: '#fff',
-                borderRadius: '4px',
-                fontSize: '11px',
-                fontWeight: 650,
-                border: '1px solid #22c55e',
-                whiteSpace: 'nowrap',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
-              }}
-            >
+            <div className="media-trimmer-time-bubble">
               {formatShortTime(startTime)}
             </div>
           </div>
 
           {/* Right Handle (Crop End) */}
           <div
+            className="media-trimmer-handle"
             onMouseDown={handlePointerDown('end')}
             onTouchStart={handlePointerDown('end')}
             style={{
-              position: 'absolute',
-              top: '-8px',
               left: `${endPercent}%`,
-              transform: 'translateX(-50%)',
-              zIndex: 10,
-              cursor: 'ew-resize',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              userSelect: 'none',
             }}
           >
-            {/* Top Green Handle Tab */}
-            <div
-              style={{
-                width: '18px',
-                height: '112px',
-                background: '#22c55e',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
-                border: '1px solid #15803d',
-              }}
-            >
-              <div style={{ width: '2px', height: '24px', background: '#fff', borderRadius: '1px', opacity: 0.8 }} />
+            <div className="media-trimmer-handle-bar" style={{ height: '112px' }}>
+              <div className="media-trimmer-handle-grip" style={{ height: '24px' }} />
             </div>
-            {/* Time Bubble Below Handle */}
-            <div
-              style={{
-                marginTop: '4px',
-                padding: '2px 6px',
-                background: '#09090b',
-                color: '#fff',
-                borderRadius: '4px',
-                fontSize: '11px',
-                fontWeight: 650,
-                border: '1px solid #22c55e',
-                whiteSpace: 'nowrap',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
-              }}
-            >
+            <div className="media-trimmer-time-bubble">
               {formatShortTime(endTime)}
             </div>
           </div>
@@ -519,7 +440,7 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: '12px',
-          paddingTop: '0.75rem',
+          paddingTop: '0.85rem',
           borderTop: '1px solid var(--border)',
         }}
       >
@@ -527,28 +448,15 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             type="button"
+            className="media-trimmer-play-btn"
             onClick={togglePlay}
             disabled={isLoadingAudio}
-            style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: '50%',
-              background: '#22c55e',
-              border: 'none',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(34, 197, 94, 0.4)',
-              transition: 'transform 0.15s ease, background 0.15s ease',
-            }}
             title={isPlaying ? 'Pause' : 'Listen to trimmed selection'}
           >
             {isPlaying ? (
-              <span style={{ fontSize: '16px', fontWeight: 900 }}>❚❚</span>
+              <span style={{ fontSize: '15px', fontWeight: 900 }}>❚❚</span>
             ) : (
-              <span style={{ fontSize: '16px', marginLeft: '3px' }}>▶</span>
+              <span style={{ fontSize: '15px', marginLeft: '2px' }}>▶</span>
             )}
           </button>
 
@@ -556,8 +464,8 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
             <div style={{ fontSize: '13px', fontWeight: 600 }}>
               {isPlaying ? 'Listening to preview...' : 'Listen to trimmed part'}
             </div>
-            <div style={{ fontSize: '12px', color: 'var(--fg-muted)' }}>
-              Position: {formatTime(currentTime)} / {formatTime(duration)}
+            <div style={{ fontSize: '12px', color: 'var(--fg-muted)', fontFamily: 'var(--font-mono)' }}>
+              {formatTime(currentTime)} / {formatTime(duration)}
             </div>
           </div>
         </div>
@@ -581,7 +489,7 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
                   }
                 }}
                 className="input"
-                style={{ width: '70px', height: '28px', fontSize: '12px', padding: '2px 6px' }}
+                style={{ width: '70px', height: '28px', fontSize: '12px', padding: '2px 6px', fontFamily: 'var(--font-mono)' }}
               />
             </div>
 
@@ -600,7 +508,7 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
                   }
                 }}
                 className="input"
-                style={{ width: '70px', height: '28px', fontSize: '12px', padding: '2px 6px' }}
+                style={{ width: '70px', height: '28px', fontSize: '12px', padding: '2px 6px', fontFamily: 'var(--font-mono)' }}
               />
             </div>
           </div>
@@ -614,7 +522,7 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
                 setIsMuted(nextMuted);
                 if (audioRef.current) audioRef.current.muted = nextMuted;
               }}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-muted)', fontSize: '16px' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-muted)', fontSize: '15px' }}
               title={isMuted ? 'Unmute' : 'Mute'}
             >
               {isMuted ? '🔇' : '🔊'}
@@ -634,7 +542,7 @@ export default function AudioWaveformTrimmer({ file, startTime = 0, endTime = 10
                   audioRef.current.muted = false;
                 }
               }}
-              style={{ width: '60px', accentColor: '#22c55e' }}
+              style={{ width: '60px', accentColor: 'var(--primary)' }}
             />
           </div>
         </div>

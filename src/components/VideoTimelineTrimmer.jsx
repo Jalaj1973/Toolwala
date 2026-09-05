@@ -162,15 +162,15 @@ export default function VideoTimelineTrimmer({ file, startTime = 0, endTime = 10
 
   return (
     <div className="card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-      {/* Header with Title and "keep" badge */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+      {/* Header with Title and Range Badge */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '18px' }}>🎬</span>
-          <span style={{ fontWeight: 650, fontSize: '16px' }}>Select video range to cut</span>
+          <span style={{ fontWeight: 650, fontSize: '16px' }}>Select Range to Cut</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="badge" style={{ padding: '3px 10px', fontSize: '11px', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', borderColor: 'rgba(34, 197, 94, 0.3)' }}>
-            keep
+          <span className="badge" style={{ padding: '3px 10px', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+            {formatShortTime(startTime)} – {formatShortTime(endTime)}
           </span>
           <span style={{ fontSize: '12px', color: 'var(--fg-muted)' }}>
             Selected: {formatTime(Math.max(0, endTime - startTime))}
@@ -183,8 +183,8 @@ export default function VideoTimelineTrimmer({ file, startTime = 0, endTime = 10
         style={{
           width: '100%',
           maxHeight: '340px',
-          background: '#09090b',
-          borderRadius: '8px',
+          background: 'var(--bg-muted)',
+          borderRadius: 'var(--radius-md)',
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'center',
@@ -210,75 +210,45 @@ export default function VideoTimelineTrimmer({ file, startTime = 0, endTime = 10
 
       {/* Timeline Scrubber Container */}
       {!isLoading && (
-        <div style={{ position: 'relative', marginTop: '1rem', marginBottom: '2rem' }}>
+        <div style={{ position: 'relative', marginTop: '1rem', marginBottom: '2.25rem' }}>
           <div
             ref={containerRef}
-            style={{
-              position: 'relative',
-              width: '100%',
-              height: '48px',
-              background: '#18181b',
-              borderRadius: '6px',
-              border: '1px solid var(--border)',
-              overflow: 'hidden',
-              cursor: 'pointer',
-              userSelect: 'none',
-            }}
+            className="media-trimmer-track"
+            style={{ height: '52px' }}
           >
             {/* Left Dimmer */}
             <div
+              className="media-trimmer-dimmer"
               style={{
-                position: 'absolute',
-                top: 0,
                 left: 0,
-                bottom: 0,
                 width: `${startPercent}%`,
-                background: 'rgba(0, 0, 0, 0.7)',
-                pointerEvents: 'none',
               }}
             />
 
             {/* Middle Keep Zone */}
             <div
+              className="media-trimmer-keep-zone"
               style={{
-                position: 'absolute',
-                top: 0,
                 left: `${startPercent}%`,
-                bottom: 0,
                 width: `${endPercent - startPercent}%`,
-                background: 'rgba(34, 197, 94, 0.15)',
-                borderTop: '2px solid #22c55e',
-                borderBottom: '2px solid #22c55e',
-                pointerEvents: 'none',
               }}
             />
 
             {/* Right Dimmer */}
             <div
+              className="media-trimmer-dimmer"
               style={{
-                position: 'absolute',
-                top: 0,
                 left: `${endPercent}%`,
                 right: 0,
-                bottom: 0,
-                background: 'rgba(0, 0, 0, 0.7)',
-                pointerEvents: 'none',
               }}
             />
 
             {/* Moving Playhead */}
             {isPlaying && (
               <div
+                className="media-trimmer-playhead"
                 style={{
-                  position: 'absolute',
-                  top: 0,
-                  bottom: 0,
                   left: `${currentPercent}%`,
-                  width: '2px',
-                  background: '#ef4444',
-                  boxShadow: '0 0 8px #ef4444',
-                  pointerEvents: 'none',
-                  zIndex: 4,
                 }}
               />
             )}
@@ -286,98 +256,34 @@ export default function VideoTimelineTrimmer({ file, startTime = 0, endTime = 10
 
           {/* Left Crop Handle */}
           <div
+            className="media-trimmer-handle"
             onMouseDown={handlePointerDown('start')}
             onTouchStart={handlePointerDown('start')}
             style={{
-              position: 'absolute',
-              top: '-6px',
               left: `${startPercent}%`,
-              transform: 'translateX(-50%)',
-              zIndex: 10,
-              cursor: 'ew-resize',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              userSelect: 'none',
             }}
           >
-            <div
-              style={{
-                width: '16px',
-                height: '60px',
-                background: '#22c55e',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
-                border: '1px solid #15803d',
-              }}
-            >
-              <div style={{ width: '2px', height: '18px', background: '#fff', opacity: 0.8 }} />
+            <div className="media-trimmer-handle-bar" style={{ height: '64px' }}>
+              <div className="media-trimmer-handle-grip" style={{ height: '18px' }} />
             </div>
-            <div
-              style={{
-                marginTop: '3px',
-                padding: '2px 5px',
-                background: '#09090b',
-                color: '#fff',
-                borderRadius: '4px',
-                fontSize: '11px',
-                fontWeight: 650,
-                border: '1px solid #22c55e',
-                whiteSpace: 'nowrap',
-              }}
-            >
+            <div className="media-trimmer-time-bubble">
               {formatShortTime(startTime)}
             </div>
           </div>
 
           {/* Right Crop Handle */}
           <div
+            className="media-trimmer-handle"
             onMouseDown={handlePointerDown('end')}
             onTouchStart={handlePointerDown('end')}
             style={{
-              position: 'absolute',
-              top: '-6px',
               left: `${endPercent}%`,
-              transform: 'translateX(-50%)',
-              zIndex: 10,
-              cursor: 'ew-resize',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              userSelect: 'none',
             }}
           >
-            <div
-              style={{
-                width: '16px',
-                height: '60px',
-                background: '#22c55e',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
-                border: '1px solid #15803d',
-              }}
-            >
-              <div style={{ width: '2px', height: '18px', background: '#fff', opacity: 0.8 }} />
+            <div className="media-trimmer-handle-bar" style={{ height: '64px' }}>
+              <div className="media-trimmer-handle-grip" style={{ height: '18px' }} />
             </div>
-            <div
-              style={{
-                marginTop: '3px',
-                padding: '2px 5px',
-                background: '#09090b',
-                color: '#fff',
-                borderRadius: '4px',
-                fontSize: '11px',
-                fontWeight: 650,
-                border: '1px solid #22c55e',
-                whiteSpace: 'nowrap',
-              }}
-            >
+            <div className="media-trimmer-time-bubble">
               {formatShortTime(endTime)}
             </div>
           </div>
@@ -392,41 +298,30 @@ export default function VideoTimelineTrimmer({ file, startTime = 0, endTime = 10
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: '12px',
-          paddingTop: '0.75rem',
+          paddingTop: '0.85rem',
           borderTop: '1px solid var(--border)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             type="button"
+            className="media-trimmer-play-btn"
             onClick={togglePlay}
             disabled={isLoading}
-            style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '50%',
-              background: '#22c55e',
-              border: 'none',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(34, 197, 94, 0.4)',
-            }}
+            style={{ width: '42px', height: '42px' }}
             title={isPlaying ? 'Pause' : 'Preview trimmed video clip'}
           >
             {isPlaying ? (
-              <span style={{ fontSize: '15px', fontWeight: 900 }}>❚❚</span>
+              <span style={{ fontSize: '14px', fontWeight: 900 }}>❚❚</span>
             ) : (
-              <span style={{ fontSize: '15px', marginLeft: '3px' }}>▶</span>
+              <span style={{ fontSize: '14px', marginLeft: '2px' }}>▶</span>
             )}
           </button>
           <div>
             <div style={{ fontSize: '13px', fontWeight: 600 }}>
               {isPlaying ? 'Playing trimmed preview...' : 'Play trimmed clip'}
             </div>
-            <div style={{ fontSize: '12px', color: 'var(--fg-muted)' }}>
+            <div style={{ fontSize: '12px', color: 'var(--fg-muted)', fontFamily: 'var(--font-mono)' }}>
               {formatTime(currentTime)} / {formatTime(duration)}
             </div>
           </div>
@@ -449,7 +344,7 @@ export default function VideoTimelineTrimmer({ file, startTime = 0, endTime = 10
                 }
               }}
               className="input"
-              style={{ width: '70px', height: '28px', fontSize: '12px', padding: '2px 6px' }}
+              style={{ width: '70px', height: '28px', fontSize: '12px', padding: '2px 6px', fontFamily: 'var(--font-mono)' }}
             />
           </div>
 
@@ -468,7 +363,7 @@ export default function VideoTimelineTrimmer({ file, startTime = 0, endTime = 10
                 }
               }}
               className="input"
-              style={{ width: '70px', height: '28px', fontSize: '12px', padding: '2px 6px' }}
+              style={{ width: '70px', height: '28px', fontSize: '12px', padding: '2px 6px', fontFamily: 'var(--font-mono)' }}
             />
           </div>
         </div>
