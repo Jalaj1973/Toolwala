@@ -215,39 +215,26 @@ textarea {
   gap: 1.5rem;
 }
 
-/* Logo */
+/* Logo - Minimalist Wordmark */
 .header__logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 650;
-  font-size: 1.125rem;
+  font-weight: 700;
+  font-size: 1.15rem;
   color: var(--fg);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
   text-decoration: none;
   flex-shrink: 0;
   transition: opacity 0.15s ease;
 }
 
 .header__logo:hover {
-  opacity: 0.85;
-}
-
-.header__logo-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-md);
-  background: var(--primary);
-  color: var(--primary-fg);
-  box-shadow: var(--shadow-sm);
+  opacity: 0.8;
 }
 
 .header__logo-text {
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
 /* Navigation Links */
@@ -265,13 +252,12 @@ textarea {
   background: var(--bg-muted);
   border: 1px solid var(--border-hairline);
   border-radius: var(--radius-full);
-  padding: 3px 4px;
+  padding: 3px;
 }
 
 .header__capsule-link {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   padding: 5px 12px;
   font-size: 0.8125rem;
   font-weight: 500;
@@ -292,36 +278,14 @@ textarea {
   color: var(--fg);
   background: var(--bg-surface);
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
 .dark .header__capsule-link--active,
 [data-theme='dark'] .header__capsule-link--active {
-  background: var(--bg-surface);
-  color: #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1);
-}
-
-.header__capsule-divider {
-  width: 1px;
-  height: 14px;
-  background: var(--border-hairline);
-  margin: 0 2px;
-}
-
-.header__capsule-badge {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  padding: 1px 6px;
-  border-radius: var(--radius-full);
-  background: rgba(99, 102, 241, 0.12);
-  color: #6366f1;
-}
-
-.dark .header__capsule-badge,
-[data-theme='dark'] .header__capsule-badge {
-  background: rgba(99, 102, 241, 0.25);
-  color: #a5b4fc;
+  background: #27272a;
+  color: #fafafa;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .header__nav-link {
@@ -360,22 +324,22 @@ textarea {
 .header__actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
-/* Shadcn Command Search Trigger */
+/* Shadcn Command Search Trigger - Compact */
 .search-trigger-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  height: 36px;
+  gap: 6px;
+  padding: 0 10px;
+  height: 30px;
   background: var(--bg-surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-hairline);
   border-radius: var(--radius-md);
   color: var(--fg-muted);
-  font-size: 0.8125rem;
+  font-size: 0.775rem;
   cursor: pointer;
   transition: all 0.15s ease;
   box-shadow: var(--shadow-sm);
@@ -389,28 +353,29 @@ textarea {
 
 .kbd-badge {
   font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 1px 5px;
+  font-size: 10px;
+  padding: 1px 4px;
   border-radius: var(--radius-xs);
   background: var(--bg-muted);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-hairline);
   color: var(--fg-muted);
   font-weight: 500;
 }
 
-/* Theme Toggle Button */
+/* Theme & Utility Toggle Button - Sleek & Compact */
 .theme-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: var(--radius-md);
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-hairline);
   color: var(--fg-muted);
   cursor: pointer;
   transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
 .theme-toggle:hover {

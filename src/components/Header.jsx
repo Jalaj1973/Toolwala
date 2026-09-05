@@ -29,14 +29,8 @@ export default function Header() {
     <>
       <header className="header">
         <div className="header__inner">
-          {/* Brand Logo */}
+          {/* Brand Logo - Minimalist Clean Typography Wordmark */}
           <Link to="/" className="header__logo" aria-label="Toolwala Home">
-            <span className="header__logo-badge">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="13 17 18 12 13 7" />
-                <polyline points="6 17 11 12 6 7" />
-              </svg>
-            </span>
             <span className="header__logo-text">Toolwala</span>
           </Link>
 
@@ -83,15 +77,13 @@ export default function Header() {
             >
               Audio
             </NavLink>
-            <span className="header__capsule-divider" />
             <NavLink
               to="/exams"
               className={({ isActive }) =>
                 `header__capsule-link ${isActive ? 'header__capsule-link--active' : ''}`
               }
             >
-              <span>Exam Presets</span>
-              <span className="header__capsule-badge">🎯 15</span>
+              Exams
             </NavLink>
           </nav>
 
@@ -104,7 +96,7 @@ export default function Header() {
               aria-label="Search tools (⌘K)"
               title="Quick Search (⌘K)"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
@@ -129,7 +121,7 @@ export default function Header() {
               aria-label="View on GitHub"
               title="GitHub"
             >
-              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
                 <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.341-3.369-1.341-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.607.069-.607 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
               </svg>
             </a>
