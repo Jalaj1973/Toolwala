@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import ToolCard from '../components/ToolCard';
 import StatCard from '../components/StatCard';
-import TaglineReveal from '../components/TaglineReveal';
 import FaqSection from '../components/FaqSection';
 import { popularTools, tools } from '../data/tools';
 import { useLanguage } from '../context/LanguageContext';
@@ -117,12 +116,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* =========================================================================
-          3. Mandatory Tagline Reveal Section (Rule B11)
-          ========================================================================= */}
-      <TaglineReveal
-        text="Your files never touch a remote server. Complete privacy and instant file conversions executed entirely on your device."
-      />
 
       {/* =========================================================================
           4. Benefits Section (Rules A2 & A5: Bold benefit first, outcome driven)
