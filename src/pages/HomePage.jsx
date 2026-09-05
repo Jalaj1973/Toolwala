@@ -199,57 +199,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* =========================================================================
-          5. How It Works Section (Rule A2: 3 clear steps)
-          ========================================================================= */}
-      <section className="section container" style={{ paddingTop: '2rem', paddingBottom: '3rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem', maxWidth: '680px', margin: '0 auto 2.5rem' }}>
-          <p className="text-eyebrow" style={{ marginBottom: '8px' }}>
-            Simple Workflow
-          </p>
-          <h2 className="text-heading">
-            How it works in three steps
-          </h2>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
-          <div className="card" style={{ padding: '1.75rem' }}>
-            <div style={{ fontSize: '13px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--fg-muted)', marginBottom: '12px' }}>
-              STEP 01
-            </div>
-            <h3 className="text-heading-sm" style={{ marginBottom: '8px' }}>
-              Pick your tool or exam preset
-            </h3>
-            <p className="text-caption" style={{ color: 'var(--fg-muted)' }}>
-              Choose from 42 dedicated file converters or 15 official competitive exam presets configured to current guidelines.
-            </p>
-          </div>
-
-          <div className="card" style={{ padding: '1.75rem' }}>
-            <div style={{ fontSize: '13px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--fg-muted)', marginBottom: '12px' }}>
-              STEP 02
-            </div>
-            <h3 className="text-heading-sm" style={{ marginBottom: '8px' }}>
-              Process instantly in browser
-            </h3>
-            <p className="text-caption" style={{ color: 'var(--fg-muted)' }}>
-              Your file converts on your device hardware without cloud queues, server bottlenecks, or subscription paywalls.
-            </p>
-          </div>
-
-          <div className="card" style={{ padding: '1.75rem' }}>
-            <div style={{ fontSize: '13px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--fg-muted)', marginBottom: '12px' }}>
-              STEP 03
-            </div>
-            <h3 className="text-heading-sm" style={{ marginBottom: '8px' }}>
-              Save your compliant file
-            </h3>
-            <p className="text-caption" style={{ color: 'var(--fg-muted)' }}>
-              Download your verified PDF, resized image, or converted media with intact metadata and zero loss in visual clarity.
-            </p>
-          </div>
-        </div>
-      </section>
 
       {/* =========================================================================
           6. Popular Tools Section
