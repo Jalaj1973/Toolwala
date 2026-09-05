@@ -5,7 +5,6 @@ import LanguageSelector from './LanguageSelector';
 import SearchModal from './SearchModal';
 import AuthModal from './AuthModal';
 import UserMenu from './UserMenu';
-import ToolsDropdown from './ToolsDropdown';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function Header() {
@@ -41,19 +40,58 @@ export default function Header() {
             <span className="header__logo-text">Toolwala</span>
           </Link>
 
-          {/* Desktop Navigation - Minimalist & Decluttered */}
-          <nav className="header__nav" aria-label="Primary navigation">
-            <ToolsDropdown />
+          {/* Desktop Navigation - Modern Segmented Capsule Track */}
+          <nav className="header__nav-capsule" aria-label="Primary navigation">
+            <NavLink
+              to="/tools"
+              end
+              className={({ isActive }) =>
+                `header__capsule-link ${isActive ? 'header__capsule-link--active' : ''}`
+              }
+            >
+              All Tools
+            </NavLink>
+            <NavLink
+              to="/tools/pdf"
+              className={({ isActive }) =>
+                `header__capsule-link ${isActive ? 'header__capsule-link--active' : ''}`
+              }
+            >
+              PDF
+            </NavLink>
+            <NavLink
+              to="/tools/image"
+              className={({ isActive }) =>
+                `header__capsule-link ${isActive ? 'header__capsule-link--active' : ''}`
+              }
+            >
+              Images
+            </NavLink>
+            <NavLink
+              to="/tools/video"
+              className={({ isActive }) =>
+                `header__capsule-link ${isActive ? 'header__capsule-link--active' : ''}`
+              }
+            >
+              Video
+            </NavLink>
+            <NavLink
+              to="/tools/audio"
+              className={({ isActive }) =>
+                `header__capsule-link ${isActive ? 'header__capsule-link--active' : ''}`
+              }
+            >
+              Audio
+            </NavLink>
+            <span className="header__capsule-divider" />
             <NavLink
               to="/exams"
               className={({ isActive }) =>
-                `header__nav-link ${isActive ? 'header__nav-link--active' : ''}`
+                `header__capsule-link ${isActive ? 'header__capsule-link--active' : ''}`
               }
             >
               <span>Exam Presets</span>
-              <span className="badge badge-glow" style={{ fontSize: '10px', padding: '1px 6px' }}>
-                🎯 15
-              </span>
+              <span className="header__capsule-badge">🎯 15</span>
             </NavLink>
           </nav>
 

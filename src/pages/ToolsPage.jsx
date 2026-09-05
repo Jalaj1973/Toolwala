@@ -12,11 +12,10 @@ export default function ToolsPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
-  const [activeCategory, setActiveCategory] = useState(urlCategory || 'all');
+  const activeCategory = urlCategory || 'all';
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSelectCategory = (catId) => {
-    setActiveCategory(catId);
     if (catId === 'all') {
       navigate('/tools');
     } else {
