@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
 
 /* ==========================================================================
-   Toolwala Design System — Modern Minimalist & Shadcn/UI Zinc Theme
+   Toolwala Design System — landing-page-design Specification
    ========================================================================== */
 
 :root {
@@ -58,47 +58,47 @@
   --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* Typography — Rule B1: Geist primary, Geist Mono for code/numbers */
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono', monospace;
 
   --header-height: 64px;
   --max-width: 1200px;
 }
 
-/* Dark Mode Tokens */
+/* Dark Mode Tokens — Rule B4: Strictly #000000, #181818, #1F1F1F, #272727, #313131 */
 .dark,
 [data-theme='dark'] {
-  --bg-canvas: #09090b;
-  --bg-canvas-rgb: 9, 9, 11;
-  --bg-surface: #121215;
-  --bg-surface-hover: #1c1c21;
-  --bg-card: #141418;
-  --bg-card-hover: #1c1c22;
-  --bg-muted: #18181b;
-  --bg-subtle: #27272a;
+  --bg-canvas: #000000;
+  --bg-canvas-rgb: 0, 0, 0;
+  --bg-surface: #181818;
+  --bg-surface-hover: #1F1F1F;
+  --bg-card: #181818;
+  --bg-card-hover: #1F1F1F;
+  --bg-muted: #1F1F1F;
+  --bg-subtle: #272727;
 
   --fg: #fafafa;
   --fg-muted: #a1a1aa;
   --fg-subtle: #71717a;
-  --fg-faint: #3f3f46;
-  --fg-on-emphasis: #09090b;
+  --fg-faint: #313131;
+  --fg-on-emphasis: #000000;
 
-  --border: #27272a;
-  --border-hairline: #27272a;
-  --border-hover: #3f3f46;
+  --border: #272727;
+  --border-hairline: #272727;
+  --border-hover: #313131;
   --border-focus: #fafafa;
 
   --primary: #fafafa;
   --primary-hover: #e4e4e7;
-  --primary-fg: #09090b;
+  --primary-fg: #000000;
 
-  --secondary: #18181b;
-  --secondary-hover: #27272a;
+  --secondary: #181818;
+  --secondary-hover: #1F1F1F;
   --secondary-fg: #fafafa;
 
-  --accent-glow: rgba(129, 140, 248, 0.14);
-  --accent-glow-cyan: rgba(56, 189, 248, 0.12);
+  --accent-glow: transparent;
+  --accent-glow-cyan: transparent;
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
@@ -160,25 +160,10 @@ textarea {
   font: inherit;
 }
 
-/* ==========================================================================
-   Ambient Mesh & Glow Effects
-   ========================================================================== */
+/* Rule B4: Backgrounds are flat. No background gradients. */
 .ambient-hero-glow {
   position: relative;
-}
-
-.ambient-hero-glow::before {
-  content: '';
-  position: absolute;
-  top: -120px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 900px;
-  height: 520px;
-  background: radial-gradient(circle, var(--accent-glow) 0%, var(--accent-glow-cyan) 40%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-  filter: blur(40px);
+  background: transparent;
 }
 
 /* Container */
@@ -947,51 +932,102 @@ select.input {
 /* ==========================================================================
    Typography Utilities
    ========================================================================== */
+/* ==========================================================================
+   Typography Utilities — Rule B1 Type Scale & Copy Rules
+   ========================================================================== */
 .text-eyebrow {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 12px;
+  line-height: 16px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--fg-muted);
 }
 
-.text-heading-lg {
-  font-size: 2.75rem;
+/* Rule B1: Strict Tailwind Type Scale */
+.text-xs { font-size: 12px; line-height: 16px; }
+.text-sm { font-size: 14px; line-height: 20px; }
+.text-base { font-size: 16px; line-height: 24px; }
+.text-lg { font-size: 18px; line-height: 28px; }
+.text-xl { font-size: 20px; line-height: 28px; }
+.text-2xl { font-size: 24px; line-height: 32px; }
+.text-3xl { font-size: 30px; line-height: 36px; }
+.text-4xl { font-size: 36px; line-height: 40px; }
+.text-5xl { font-size: 48px; line-height: 1; }
+.text-6xl { font-size: 60px; line-height: 1; }
+
+/* Rule B1: No orphaned words */
+h1, h2, h3, h4, h5, h6, .text-heading-lg, .text-heading, .text-heading-sm, .hero-heading {
+  text-wrap: balance;
+}
+
+p, .text-body, .text-caption, .hero-subheading {
+  text-wrap: pretty;
+}
+
+/* Rule B5: Hero Section Heading Gradient & 680px Limit */
+.hero-heading {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 48px;
+  line-height: 1.1;
   font-weight: 700;
   letter-spacing: -0.035em;
-  line-height: 1.1;
+  background: linear-gradient(90deg, #000000 0%, #666666 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .hero-heading,
+[data-theme='dark'] .hero-heading {
+  background: linear-gradient(90deg, #FFFFFF 0%, #9B9B9B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-subheading {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--fg-muted);
+}
+
+.text-heading-lg {
+  font-size: 36px;
+  line-height: 40px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: var(--fg);
 }
 
-@media (max-width: 768px) {
-  .text-heading-lg {
-    font-size: 2rem;
-  }
-}
-
 .text-heading {
-  font-size: 1.875rem;
+  font-size: 30px;
+  line-height: 36px;
   font-weight: 700;
   letter-spacing: -0.025em;
   color: var(--fg);
 }
 
 .text-heading-sm {
-  font-size: 1.125rem;
+  font-size: 18px;
+  line-height: 28px;
   font-weight: 600;
   letter-spacing: -0.015em;
   color: var(--fg);
 }
 
 .text-body {
-  font-size: 0.9375rem;
+  font-size: 16px;
+  line-height: 24px;
   color: var(--fg-muted);
-  line-height: 1.6;
 }
 
 .text-caption {
-  font-size: 0.8125rem;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 20px;
 }
 
 /* ==========================================================================
